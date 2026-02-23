@@ -2,12 +2,25 @@ import { useState } from "react";
 import { login, register } from "../components/services/authService";
 import { useNavigate } from "react-router-dom";
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  marginBottom: "12px",
+  boxSizing: "border-box",
+  border: "1px solid #dadce0",
+  borderRadius: "6px",
+  fontSize: "14px",
+  height: "40px"
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [studentSection, setStudentSection] = useState("");
+  const [schedule, setSchedule] = useState("");
 
   // ✅ NEW: role selector for signup
   const [signUpRole, setSignUpRole] = useState("student");
@@ -81,27 +94,28 @@ export default function LoginPage() {
       <div
         style={{
           background: "white",
-          padding: "30px",
+          padding: "32px",
           borderRadius: "10px",
-          width: "320px",
+          width: "360px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.15)"
         }}
       >
         <h2 style={{ textAlign: "center" }}>{isSignUp ? "Sign Up" : "Login"}</h2>
 
         {isSignUp && (
           <>
-            <input
-              placeholder="Full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-            />
+            <label style={{ fontSize: "13px", fontWeight: 600 }}>Full Name</label>
+              <input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                style={ inputStyle }
+              />
 
             {/* ✅ NEW: Role dropdown */}
             <select
               value={signUpRole}
               onChange={(e) => setSignUpRole(e.target.value)}
-              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+              style={ inputStyle }
             >
               <option value="student">Student</option>
               <option value="admin">Admin</option>
@@ -114,25 +128,48 @@ export default function LoginPage() {
                 placeholder="Admin passcode"
                 value={adminPasscode}
                 onChange={(e) => setAdminPasscode(e.target.value)}
-                style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+                style={ inputStyle }
               />
             )}
           </>
+          
         )}
+        {isSignUp && signUpRole === "student" && (
+        <>
+          <h4 style={{ margin: "14px 0 8px" }}>Student Credentials</h4>
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-        />
+          <label style={{ fontSize: "13px", fontWeight: 600 }}>Section</label>
+          <input
+            value={studentSection}
+            onChange={(e) => setStudentSection(e.target.value)}
+            style={ inputStyle }
+          />
 
+          <label style={{ fontSize: "13px", fontWeight: 600 }}>
+            Class Schedule
+          </label>
+          <input
+            placeholder="Mon–Fri 8:00–12:00"
+            value={schedule}
+            onChange={(e) => setSchedule(e.target.value)}
+            style={ inputStyle }
+          />
+        </>
+      )}
+
+        <label style={{ fontSize: "13px", fontWeight: 600 }}>Email</label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={ inputStyle}
+          />
+
+        <label style={{ fontSize: "13px", fontWeight: 600 }}>Password</label>
         <input
           type="password"
-          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: "15px", padding: "8px" }}
+          style={inputStyle}
         />
 
         <button
