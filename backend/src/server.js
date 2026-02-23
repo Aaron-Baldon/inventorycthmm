@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Startup DB check
+// ✅ Startup DB check: proves which DB you are connected to
 async function checkDb() {
   try {
     const r = await pool.query(`
@@ -28,7 +28,9 @@ async function checkDb() {
 }
 checkDb();
 
-// Helpers
+// --------------------
+// HELPERS
+// --------------------
 async function ensureRolesExist() {
   await pool.query(`
     INSERT INTO public.roles (name)
@@ -82,7 +84,7 @@ app.post("/api/auth/register", async (req, res) => {
     if (desiredRole === "admin") {
       const secret = String(process.env.ADMIN_REGISTER_SECRET || "").trim();
 
-      // ✅ IMPORTANT: do NOT silently create student if they chose admin
+      // If you didn't set ADMIN_REGISTER_SECRET, admin registration is disabled
       if (!secret) {
         return res.status(403).json({
           error: "Admin signup disabled. Set ADMIN_REGISTER_SECRET in backend env.",
@@ -179,15 +181,15 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // --------------------
-// EXISTING ROUTES
+// ✅ HEALTH CHECK
 // --------------------
-
-// Health check
 app.get("/api/health", async (req, res) => {
   res.json({ ok: true, message: "Backend is running" });
 });
 
-// 1) Get lab rooms
+// --------------------
+// ✅ LAB ROOMS
+// --------------------
 app.get("/api/lab-rooms", async (req, res) => {
   try {
     const result = await pool.query(
@@ -205,7 +207,11 @@ app.get("/api/lab-rooms", async (req, res) => {
   }
 });
 
-// 2) Get calendar events (approved reservations)
+// --------------------
+// ✅ ROOM RESERVATIONS
+// --------------------
+
+// Calendar events (approved only)
 app.get("/api/room-reservations/events", async (req, res) => {
   try {
     const { start, end, roomId } = req.query;
@@ -246,7 +252,7 @@ app.get("/api/room-reservations/events", async (req, res) => {
   }
 });
 
-// 3) Side panel: reservations for a room + date
+// Side panel: reservations for a room + date (includes pending/approved/etc)
 app.get("/api/lab-rooms/:roomId/reservations", async (req, res) => {
   try {
     const roomId = Number(req.params.roomId);
@@ -278,7 +284,7 @@ app.get("/api/lab-rooms/:roomId/reservations", async (req, res) => {
   }
 });
 
-// 4) Create reservation (pending)
+// Create reservation (pending)
 app.post("/api/lab-rooms/:roomId/reservations", async (req, res) => {
   try {
     const roomId = Number(req.params.roomId);
@@ -343,7 +349,7 @@ app.post("/api/lab-rooms/:roomId/reservations", async (req, res) => {
   }
 });
 
-// 5) Admin: approve/reject reservation
+// Admin: approve/reject/cancel/pending
 app.patch("/api/room-reservations/:id/status", async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -376,6 +382,69 @@ app.patch("/api/room-reservations/:id/status", async (req, res) => {
       err.code
     );
     res.status(500).json({ error: "Failed to update status" });
+  }
+});
+
+// --------------------
+// ✅ ADMIN DASHBOARD ROUTES (NEW)
+// --------------------
+
+// Admin stats (counts from DB)
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    const reservations = await pool.query(`
+      SELECT
+        COUNT(*)::int AS total,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END)::int AS pending,
+        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END)::int AS approved,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END)::int AS rejected,
+        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END)::int AS cancelled
+      FROM public.room_reservations
+    `);
+
+    res.json({ reservations: reservations.rows[0] });
+  } catch (err) {
+    console.error("Admin stats error:", err.message, err.code);
+    res.status(500).json({ error: "Failed to load admin stats" });
+  }
+});
+
+// Admin list of room reservations (filter by status)
+app.get("/api/admin/room-reservations", async (req, res) => {
+  try {
+    const status = req.query.status ? String(req.query.status).toLowerCase() : null;
+
+    const allowed = ["pending", "approved", "rejected", "cancelled"];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({ error: "Invalid status filter" });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        rr.id,
+        rr.lab_room_id,
+        lr.room_name,
+        rr.reservation_date,
+        rr.start_time,
+        rr.end_time,
+        rr.status,
+        rr.reserved_by,
+        u.full_name AS reserved_by_name
+      FROM public.room_reservations rr
+      JOIN public.lab_rooms lr ON rr.lab_room_id = lr.id
+      LEFT JOIN public.users u ON rr.reserved_by = u.id
+      WHERE ($1::text IS NULL OR rr.status = $1::text)
+      ORDER BY rr.reservation_date DESC, rr.start_time DESC
+      LIMIT 200
+      `,
+      [status]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Admin reservations list error:", err.message, err.code);
+    res.status(500).json({ error: "Failed to load reservations list" });
   }
 });
 

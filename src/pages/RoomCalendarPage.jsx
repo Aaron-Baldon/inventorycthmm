@@ -11,6 +11,7 @@ import {
   getEvents,
   getRoomReservationsByDate,
   createReservation,
+  updateReservationStatus, // ✅ NEW
 } from "../helper/api";
 
 // format Date -> YYYY-MM-DD (local)
@@ -23,6 +24,7 @@ function toYMD(d) {
 
 export default function RoomCalendarPage() {
   const user = getUser();
+  const isAdmin = String(user?.role || "").toLowerCase() === "admin";
 
   // rooms
   const [rooms, setRooms] = useState([]);
@@ -66,7 +68,7 @@ export default function RoomCalendarPage() {
   }, []);
 
   // =========================
-  // LOAD EVENTS
+  // LOAD EVENTS (approved only)
   // =========================
   useEffect(() => {
     if (!range.start || !range.end) return;
@@ -87,7 +89,7 @@ export default function RoomCalendarPage() {
   }, [range, selectedRoomId]);
 
   // =========================
-  // LOAD DAY RESERVATIONS
+  // LOAD DAY RESERVATIONS (includes pending/approved/etc)
   // =========================
   const loadDayReservations = async (roomId, dateStr) => {
     if (!roomId || !dateStr) return;
@@ -116,6 +118,27 @@ export default function RoomCalendarPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoomId]);
+
+  // =========================
+  // ADMIN: APPROVE / REJECT
+  // =========================
+  const handleSetStatus = async (reservationId, status) => {
+    if (!isAdmin) return;
+
+    try {
+      setMessage("");
+      await updateReservationStatus({ id: reservationId, status });
+
+      setMessage(`✅ Reservation ${status}.`);
+      await loadDayReservations(selectedRoomId, selectedDate);
+
+      // refresh calendar (approved events)
+      setRange((r) => ({ ...r }));
+    } catch (e) {
+      console.error("updateReservationStatus error:", e);
+      setMessage(e.message || "Failed to update status.");
+    }
+  };
 
   // =========================
   // SUBMIT RESERVATION (PENDING)
@@ -159,6 +182,11 @@ export default function RoomCalendarPage() {
     const r = rooms.find((x) => x.id === selectedRoomId);
     return r?.room_name || "";
   }, [rooms, selectedRoomId]);
+
+  const pendingCount = useMemo(
+    () => dayReservations.filter((r) => String(r.status).toLowerCase() === "pending").length,
+    [dayReservations]
+  );
 
   return (
     <div style={{ padding: 20 }}>
@@ -254,6 +282,11 @@ export default function RoomCalendarPage() {
               <div>
                 <div style={{ fontWeight: 900, fontSize: 16 }}>{selectedRoomName}</div>
                 <div style={{ opacity: 0.85, marginTop: 2 }}>{selectedDate}</div>
+                {isAdmin && (
+                  <div style={{ marginTop: 6, opacity: 0.9, fontWeight: 800, fontSize: 12 }}>
+                    Admin view • Pending: {pendingCount}
+                  </div>
+                )}
               </div>
 
               <button
@@ -284,30 +317,72 @@ export default function RoomCalendarPage() {
               <div style={{ opacity: 0.8 }}>No reservations for this day.</div>
             ) : (
               <div style={{ display: "grid", gap: 8 }}>
-                {dayReservations.map((r) => (
-                  <div
-                    key={r.id}
-                    style={{
-                      padding: 10,
-                      borderRadius: 14,
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      background: "rgba(255,255,255,0.04)",
-                    }}
-                  >
-                    <div style={{ fontWeight: 900 }}>
-                      {String(r.start_time).slice(0, 5)} – {String(r.end_time).slice(0, 5)}
+                {dayReservations.map((r) => {
+                  const statusLower = String(r.status || "").toLowerCase();
+                  const canApprove = isAdmin && statusLower === "pending";
+
+                  return (
+                    <div
+                      key={r.id}
+                      style={{
+                        padding: 10,
+                        borderRadius: 14,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(255,255,255,0.04)",
+                      }}
+                    >
+                      <div style={{ fontWeight: 900 }}>
+                        {String(r.start_time).slice(0, 5)} – {String(r.end_time).slice(0, 5)}
+                      </div>
+
+                      <div style={{ opacity: 0.8, marginTop: 2 }}>
+                        Status: <span style={{ fontWeight: 800 }}>{r.status}</span>
+                      </div>
+
+                      {/* ✅ ADMIN BUTTONS */}
+                      {canApprove && (
+                        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                          <button
+                            onClick={() => handleSetStatus(r.id, "approved")}
+                            style={{
+                              flex: 1,
+                              padding: "9px 10px",
+                              borderRadius: 12,
+                              border: "1px solid rgba(255,255,255,0.14)",
+                              background: "rgba(46, 204, 113, 0.18)",
+                              color: "white",
+                              cursor: "pointer",
+                              fontWeight: 900,
+                            }}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleSetStatus(r.id, "rejected")}
+                            style={{
+                              flex: 1,
+                              padding: "9px 10px",
+                              borderRadius: 12,
+                              border: "1px solid rgba(255,255,255,0.14)",
+                              background: "rgba(231, 76, 60, 0.18)",
+                              color: "white",
+                              cursor: "pointer",
+                              fontWeight: 900,
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div style={{ opacity: 0.8, marginTop: 2 }}>
-                      Status: <span style={{ fontWeight: 800 }}>{r.status}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             <hr style={{ borderColor: "rgba(255,255,255,0.10)", margin: "14px 0" }} />
 
-            {/* Reserve form */}
+            {/* Reserve form (student + admin both can request, keep your behavior) */}
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Reserve a time</div>
 
             <div style={{ display: "grid", gap: 10 }}>

@@ -68,7 +68,6 @@ export async function createReservation({
 // --------------------
 // AUTH
 // --------------------
-// ✅ UPDATED: accept role + admin_secret
 export async function apiRegister({ full_name, email, password, role, admin_secret }) {
   const res = await fetch(`${API_BASE}/api/auth/register`, {
     method: "POST",
@@ -78,7 +77,7 @@ export async function apiRegister({ full_name, email, password, role, admin_secr
 
   const { ok, data } = await parseJson(res);
   if (!ok) throw new Error(data?.error || "Registration failed");
-  return data; // {id, full_name, email, role...}
+  return data;
 }
 
 export async function apiLogin({ email, password }) {
@@ -90,5 +89,44 @@ export async function apiLogin({ email, password }) {
 
   const { ok, data } = await parseJson(res);
   if (!ok) throw new Error(data?.error || "Login failed");
-  return data; // {id, full_name, email, role}
+  return data;
+}
+
+// --------------------
+// ADMIN: UPDATE RESERVATION STATUS
+// --------------------
+export async function updateReservationStatus({ id, status }) {
+  const res = await fetch(`${API_BASE}/api/room-reservations/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+
+  const { ok, data } = await parseJson(res);
+  if (!ok) throw new Error(data?.error || "Failed to update status");
+  return data;
+}
+
+// --------------------
+// ✅ ADMIN DASHBOARD APIs (NEW)
+// --------------------
+export async function getAdminStats() {
+  const res = await fetch(`${API_BASE}/api/admin/stats`);
+  const { ok, data } = await parseJson(res);
+  if (!ok) throw new Error(data?.error || "Failed to fetch admin stats");
+  return data; // { reservations: {total,pending,approved,rejected,cancelled} }
+}
+
+export async function getAdminRoomReservations({ status } = {}) {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+
+  const url = params.toString()
+    ? `${API_BASE}/api/admin/room-reservations?${params}`
+    : `${API_BASE}/api/admin/room-reservations`;
+
+  const res = await fetch(url);
+  const { ok, data } = await parseJson(res);
+  if (!ok) throw new Error(data?.error || "Failed to fetch reservations list");
+  return Array.isArray(data) ? data : [];
 }
