@@ -46,59 +46,60 @@ export default function StudentSidebar({ open, onClose, onNavigate }) {
 					← Back
 				</div>
 
-        {/* Main Menu */}
-        <div style={{ flex: 1 }}>
-          <MenuItem
-            label="Home"
-            onClick={() => {
-              onNavigate("home");
-              onClose();
-            }}
-          />
+				{/* MAIN MENU */}
+				<div>
+					<MenuItem
+						label="Home"
+						onClick={() => {
+							onNavigate("home");
+							onClose();
+						}}
+					/>
 
-          <MenuItem
-            label="Borrow"
-            onClick={() => {
-              onNavigate("borrow");
-              onClose();
-            }}
-          />
+					<MenuItem
+						label="Borrow"
+						onClick={() => {
+							onNavigate("borrow");
+							onClose();
+						}}
+					/>
 
-				<MenuItem
-					label="Calendar"
-					onClick={() => {
-						onNavigate("calendar");
-						onClose();
-					}}
-				/>
+					<MenuItem
+						label="Calendar"
+						onClick={() => {
+							onNavigate("calendar");
+							onClose();
+						}}
+					/>
+				</div>
 			</div>
 		</>
 	);
 }
 
 function MenuItem({ label, onClick, isLogout }) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: "12px 14px",
-        borderRadius: "8px",
-        cursor: "pointer",
-        marginBottom: "8px",
-        fontWeight: "500",
-        color: isLogout ? "#d32f2f" : "#333",
-        transition: "0.2s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = isLogout ? "#d32f2f" : "#0d47a1";
-        e.currentTarget.style.color = "white";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent";
-        e.currentTarget.style.color = isLogout ? "#d32f2f" : "#333";
-      }}
-    >
-      {label}
-    </div>
-  );
+	return (
+		<div
+			onClick={onClick}
+			style={{
+				padding: "12px 14px",
+				borderRadius: "8px",
+				cursor: "pointer",
+				marginBottom: "8px",
+				fontWeight: "500",
+				color: isLogout ? "#d32f2f" : "#333",
+				transition: "0.2s",
+			}}
+			onMouseEnter={(e) => {
+				e.currentTarget.style.background = isLogout ? "#d32f2f" : "#0d47a1";
+				e.currentTarget.style.color = "white";
+			}}
+			onMouseLeave={(e) => {
+				e.currentTarget.style.background = "transparent";
+				e.currentTarget.style.color = isLogout ? "#d32f2f" : "#333";
+			}}
+		>
+			{label}
+		</div>
+	);
 }

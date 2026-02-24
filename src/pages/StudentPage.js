@@ -21,6 +21,7 @@ function StudentPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [page, setPage] = useState("home");
   const [notification, setNotification] = useState("");
+    const [showInbox, setShowInbox] = useState(false);
 
   useEffect(() => {
     document.title = "Student | Inventory System";
@@ -47,21 +48,6 @@ function StudentPage() {
         zIndex: 1000,
       }}>
         <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setShowInbox(!showInbox)}
-            style={{
-              background: "#2563eb",
-              color: "white",
-              padding: "10px 15px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "600",
-              border: "none",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
-            }}
-          >
-            Announcements
-          </button>
 
           {showInbox && (
             <div style={{

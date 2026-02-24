@@ -109,16 +109,17 @@ export default function StudentCalendar() {
 						onMouseLeave={() => setHovered(null)}
 						style={{
 							flex: 1,
-							height: "70px",
-							margin: "2px",
+							height: "36px",
+							margin: "1px",
 							display: "flex",
 							justifyContent: "center",
 							alignItems: "center",
-							borderRadius: "10px",
+							borderRadius: "5px",
 							background: hasReason ? "#fdecea" : "#fff",
 							color,
 							boxShadow: "0 2px 5px rgba(0,0,0,.1)",
-							position: "relative"
+							position: "relative",
+							fontSize: "11px",
 						}}
 					>
 						{dateObj.day}
@@ -161,7 +162,7 @@ export default function StudentCalendar() {
 	/* ================= JSX ================= */
 
 	return (
-		<div style={{ maxWidth: "900px", margin: "0 auto", fontFamily: "Arial" }}>
+		<div style={{ maxWidth: "700px", margin: "0 auto", fontFamily: "Arial" }}>
 			{/* MONTH NAV */}
 			<div style={{ display: "flex", justifyContent: "space-between" }}>
 				<button onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}>
