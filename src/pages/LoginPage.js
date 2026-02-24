@@ -2,12 +2,25 @@ import { useState } from "react";
 import { login, register } from "../components/services/authService";
 import { useNavigate } from "react-router-dom";
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  marginBottom: "12px",
+  boxSizing: "border-box",
+  border: "1px solid #dadce0",
+  borderRadius: "6px",
+  fontSize: "14px",
+  height: "40px"
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [studentSection, setStudentSection] = useState("");
+  const [schedule, setSchedule] = useState("");
 
   const [signUpRole, setSignUpRole] = useState("student");
   const [adminPasscode, setAdminPasscode] = useState("");
@@ -80,9 +93,8 @@ export default function LoginPage() {
         style={{
           background: "white",
           padding: "30px",
-          borderRadius: "12px",
-          width: "350px",
-          boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+          borderRadius: "10px",
+          width: "320px",
         }}
       >
         <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -95,13 +107,13 @@ export default function LoginPage() {
               placeholder="Full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              style={styles.input}
+              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
             />
 
             <select
               value={signUpRole}
               onChange={(e) => setSignUpRole(e.target.value)}
-              style={styles.input}
+              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
             >
               <option value="student">Student</option>
               <option value="admin">Admin</option>
@@ -113,7 +125,7 @@ export default function LoginPage() {
                 placeholder="Admin passcode"
                 value={adminPasscode}
                 onChange={(e) => setAdminPasscode(e.target.value)}
-                style={styles.input}
+                style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
               />
             )}
           </>
@@ -123,15 +135,15 @@ export default function LoginPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
+          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
         />
 
+        <label style={{ fontSize: "13px", fontWeight: 600 }}>Password</label>
         <input
           type="password"
-          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{ ...styles.input, marginBottom: "20px" }}
+          style={{ width: "100%", marginBottom: "15px", padding: "8px" }}
         />
 
         <button

@@ -1,47 +1,50 @@
-export default function StudentSidebar({ open, onClose, onNavigate }) {
-  return (
-    <>
-      {open && (
-        <div
-          onClick={onClose}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.35)",
-            zIndex: 9,
-          }}
-        />
-      )}
+import { useTheme } from "../../context/ThemeContext";
+import { themes } from "../../theme/studentTheme";
 
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: open ? 0 : "-260px",
-          width: "260px",
-          height: "100vh",
-          background: "#f8f9fa",
-          borderRight: "1px solid #ddd",
-          transition: "left 0.3s ease",
-          zIndex: 10,
-          padding: "20px",
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {/* Back */}
-        <div
-          onClick={onClose}
-          style={{
-            marginBottom: "25px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            color: "#0d47a1",
-          }}
-        >
-          ← Back
-        </div>
+export default function StudentSidebar({ open, onClose, onNavigate }) {
+	return (
+		<>
+			{/* OVERLAY */}
+			{open && (
+				<div
+					onClick={onClose}
+					style={{
+						position: "fixed",
+						inset: 0,
+						background: "rgba(0,0,0,0.5)",
+						zIndex: 9,
+					}}
+				/>
+			)}
+
+			{/* SIDEBAR */}
+			<div
+				style={{
+					position: "fixed",
+					top: 0,
+					left: open ? 0 : "-260px",
+					width: "260px",
+					height: "100vh",
+					background: "#f8f9fa",
+					borderRight: "1px solid #ddd",
+					transition: "left 0.3s ease",
+					zIndex: 10,
+					padding: "20px",
+					boxSizing: "border-box",
+				}}
+			>
+				{/* BACK */}
+				<div
+					onClick={onClose}
+					style={{
+						marginBottom: "25px",
+						cursor: "pointer",
+						fontWeight: "bold",
+						color: "#0d47a1",
+					}}
+				>
+					← Back
+				</div>
 
         {/* Main Menu */}
         <div style={{ flex: 1 }}>
@@ -61,27 +64,16 @@ export default function StudentSidebar({ open, onClose, onNavigate }) {
             }}
           />
 
-          <MenuItem
-            label="Calendar"
-            onClick={() => {
-              onNavigate("calendar");
-              onClose();
-            }}
-          />
-        </div>
-
-        {/* Logout - Bottom */}
-        <MenuItem
-          label="Logout"
-          isLogout
-          onClick={() => {
-            onNavigate("logout");
-            onClose();
-          }}
-        />
-      </div>
-    </>
-  );
+				<MenuItem
+					label="Calendar"
+					onClick={() => {
+						onNavigate("calendar");
+						onClose();
+					}}
+				/>
+			</div>
+		</>
+	);
 }
 
 function MenuItem({ label, onClick, isLogout }) {
