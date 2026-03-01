@@ -14,13 +14,13 @@ const inputStyle = {
 };
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [loginValue, setLoginValue] = useState("");
   const [fullName, setFullName] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [studentSection, setStudentSection] = useState("");
-  const [schedule, setSchedule] = useState("");
 
   const [signUpRole, setSignUpRole] = useState("student");
   const [adminPasscode, setAdminPasscode] = useState("");
@@ -30,7 +30,8 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const user = await login(loginValue, password);
+
       const role = String(user.role || "").toLowerCase();
       if (role === "admin") navigate("/admin");
       else navigate("/student");
@@ -49,12 +50,23 @@ export default function LoginPage() {
         return;
       }
 
+      if (!email.trim()) {
+        alert("Email is required.");
+        return;
+      }
+
+      if (!idNumber.trim()) {
+        alert("ID Number is required.");
+        return;
+      }
+
       if (signUpRole === "admin" && !adminPasscode.trim()) {
         alert("Admin passcode is required for admin signup.");
         return;
       }
 
       const user = await register(fullName, email, password, {
+        id_number: idNumber,
         role: signUpRole,
         admin_secret: signUpRole === "admin" ? adminPasscode : undefined,
       });
@@ -85,8 +97,6 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         background: "#0d47a1",
-        boxSizing: "border-box",
-        overflowX: "hidden",
       }}
     >
       <div
@@ -101,19 +111,33 @@ export default function LoginPage() {
           {isSignUp ? "Sign Up" : "Login"}
         </h2>
 
-        {isSignUp && (
+        {isSignUp ? (
           <>
             <input
               placeholder="Full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+              style={inputStyle}
+            />
+
+            <input
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={inputStyle}
+            />
+
+            <input
+              placeholder="ID Number"
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value)}
+              style={inputStyle}
             />
 
             <select
               value={signUpRole}
               onChange={(e) => setSignUpRole(e.target.value)}
-              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+              style={inputStyle}
             >
               <option value="student">Student</option>
               <option value="admin">Admin</option>
@@ -125,26 +149,36 @@ export default function LoginPage() {
                 placeholder="Admin passcode"
                 value={adminPasscode}
                 onChange={(e) => setAdminPasscode(e.target.value)}
-                style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+                style={inputStyle}
               />
             )}
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={inputStyle}
+            />
+          </>
+        ) : (
+          <>
+            <input
+              placeholder="Email or ID Number"
+              value={loginValue}
+              onChange={(e) => setLoginValue(e.target.value)}
+              style={inputStyle}
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={inputStyle}
+            />
           </>
         )}
-
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-        />
-
-        <label style={{ fontSize: "13px", fontWeight: 600 }}>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: "15px", padding: "8px" }}
-        />
 
         <button
           onClick={handleSubmit}
@@ -173,18 +207,10 @@ export default function LoginPage() {
 }
 
 const styles = {
-  input: {
-    width: "100%",
-    marginBottom: "12px",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    boxSizing: "border-box",
-  },
   button: {
     display: "block",
     margin: "0 auto",
-    width: "220px",
+    width: "100%",
     padding: "10px",
     background: "#0d47a1",
     color: "white",
