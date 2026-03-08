@@ -32,10 +32,11 @@
   },
 
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node server/server.js",
-    "client": "react-scripts start"
+    "start": "concurrently \"npm run react\" \"npm run python\"",
+    "react": "react-scripts start",
+    "python": "cd server && python server.py"
   },
+
 
   "eslintConfig": {
     "extends": ["react-app", "react-app/jest"]
