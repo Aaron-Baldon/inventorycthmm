@@ -48,6 +48,11 @@ def load_faq():
 # ---------- LOAD FAQ ONCE ----------
 faqs, question_embeddings = load_faq()
 
+# ---------- RELOAD FAQ ONCE ----------
+def reload_faq():
+    global faqs, question_embeddings
+    faqs, question_embeddings = load_faq()
+
 # ---------- FUZZY MATCHING ----------
 def fuzzy_match(user_input):
     best_score = 0

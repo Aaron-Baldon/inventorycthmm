@@ -64,6 +64,14 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 							onClose();
 						}}
 					/>
+
+					<MenuItem
+					label="FAQ Manager"
+					onClick={() => {
+						onNavigate("faq");
+						onClose();
+					}}
+					/>
 				</div>
 
 				{/* Logout Option Only (No Logic Attached) */}
