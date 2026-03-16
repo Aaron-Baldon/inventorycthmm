@@ -81,7 +81,7 @@ export default function Dashboard() {
   const availableRooms = totalRooms - usedRooms;
 
   const usageRate = totalRooms
-    ? Math.round((usedRooms / totalRooms) * 100)
+    ? Math.min(100, Math.round((usedRooms / totalRooms) * 100))
     : 0;
 
   const calendarEvents = useMemo(() => {
@@ -289,7 +289,6 @@ export default function Dashboard() {
         </ChartCard>
 
         <MiniCalendar
-          events={calendarEvents}
           onDateClick={(dateStr) => {
             setSelectedDate(dateStr);
             setPanelOpen(true);
@@ -574,115 +573,182 @@ function ProgressWidget({ usageRate, usedRooms, availableRooms }) {
   );
 }
 
-function MiniCalendar({ events, onDateClick }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [hoverData, setHoverData] = useState(null);
+function MiniCalendar({ onDateClick }) {
 
-  // format Date -> YYYY-MM-DD (local)
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [events, setEvents] = useState([])
+  const [hoverData, setHoverData] = useState(null)
+  const [hoverPos, setHoverPos] = useState({x:0,y:0})
+  const [selectedDate,setSelectedDate] = useState(null)
+
   const toYMD = (d) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const days = [];
-
-  for (let i = 0; i < firstDay; i++) {
-    days.push(null);
+    const y = d.getFullYear()
+    const m = String(d.getMonth()+1).padStart(2,"0")
+    const day = String(d.getDate()).padStart(2,"0")
+    return `${y}-${m}-${day}`
   }
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    days.push(d);
+  const loadEvents = async (date) => {
+
+    const start = new Date(date.getFullYear(), date.getMonth(), 1)
+      .toISOString().slice(0,10)
+
+    const end = new Date(date.getFullYear(), date.getMonth()+1, 0)
+      .toISOString().slice(0,10)
+
+    try{
+      const data = await getEvents({ start, end })
+      setEvents(Array.isArray(data) ? data : [])
+    }catch{
+      setEvents([])
+    }
+
   }
 
-  const prevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-  };
+  useEffect(()=>{
+    loadEvents(currentDate)
+  },[currentDate])
 
-  const nextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-  };
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
 
-  return (
+  const firstDay = new Date(year,month,1).getDay()
+  const daysInMonth = new Date(year,month+1,0).getDate()
+
+  const days=[]
+
+  for(let i=0;i<firstDay;i++) days.push(null)
+  for(let d=1; d<=daysInMonth; d++) days.push(d)
+
+  return(
+
     <div style={styles.calendarCard}>
+
       {/* HEADER */}
       <div style={styles.calendarHeaderBar}>
-        <button onClick={prevMonth} style={styles.calendarNavBtn}>◀</button>
+
+        <button
+          onClick={()=>setCurrentDate(new Date(year,month-1,1))}
+          style={styles.calendarNavBtn}
+        >
+          ‹
+        </button>
 
         <h4>
-          {currentDate.toLocaleString("default", { month: "long" })} {year}
+          {currentDate.toLocaleString("default",{month:"long"})} {year}
         </h4>
 
-        <button onClick={nextMonth} style={styles.calendarNavBtn}>▶</button>
+        <button
+          onClick={()=>setCurrentDate(new Date(year,month+1,1))}
+          style={styles.calendarNavBtn}
+        >
+          ›
+        </button>
+
       </div>
 
-      {/* DAYS GRID */}
+      {/* GRID */}
       <div style={styles.calendarGrid}>
-        {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
-          <div key={d} style={styles.calendarWeek}>
-            {d}
-          </div>
-        ))}
 
-        {days.map((d, i) => {
-          const reservations = events.filter((e) => {
-            if (!d) return false;
+        {["SUN","MON","TUE","WED","THU","FRI","SAT"].map(d=>
+          <div key={d} style={styles.calendarWeek}>{d}</div>
+        )}
 
-            const [y, m, day] = e.date.split("-").map(Number);
+        {days.map((d,i)=>{
 
-            return (
-              day === d &&
-              m - 1 === month &&
-              y === year
-            );
-          });
+          if(!d) return <div key={i}></div>
 
-          const hasEvent = reservations.length > 0;
+          const dateStr = toYMD(new Date(year,month,d))
 
-          const dateStr = d
-            ? toYMD(new Date(year, month, d))
-            : null;
+          const reservations = events.filter(e=>
+            e.start.slice(0,10)===dateStr
+          )
 
-          return (
+          const hasEvent = reservations.length>0
+          const isSelected = selectedDate === dateStr
+
+          return(
+
             <div
               key={i}
+
               style={{
                 ...styles.calendarDay,
-                background: hasEvent ? "#f59e0b" : "transparent",
-                color: hasEvent ? "#fff" : "#333",
+                background:isSelected
+                  ? "#3b82f6"
+                  : hasEvent
+                  ? "#f97316"
+                  : "transparent",
+                color:isSelected || hasEvent ? "#fff" : "#111"
               }}
-              onMouseEnter={() => setHoverData(reservations)}
-              onMouseLeave={() => setHoverData(null)}
-              onClick={() => {
-                if (!d) return;
-                if (typeof onDateClick === "function") onDateClick(dateStr);
+
+              onMouseEnter={(e)=>{
+                if(reservations.length>0){
+                  setHoverData(reservations)
+                  setHoverPos({
+                    x:e.clientX,
+                    y:e.clientY
+                  })
+                }
               }}
+
+              onMouseLeave={()=>setHoverData(null)}
+
+              onClick={()=>{
+
+                setSelectedDate(dateStr)
+
+                if(onDateClick)
+                  onDateClick(dateStr)
+
+              }}
+
             >
-              {d || ""}
+              {d}
+
             </div>
-          );
+
+          )
+
         })}
+
       </div>
 
-      {/* HOVER INFO */}
-      {hoverData && hoverData.length > 0 && (
-        <div style={styles.calendarTooltip}>
-          {hoverData.map((r, i) => (
+      {/* HOVER TOOLTIP */}
+
+      {hoverData && (
+
+        <div
+          style={{
+            position:"fixed",
+            top:hoverPos.y + 10,
+            left:hoverPos.x + 10,
+            background:"#111",
+            color:"#fff",
+            padding:"8px",
+            borderRadius:"6px",
+            fontSize:"12px",
+            pointerEvents:"none",
+            zIndex:999
+          }}
+        >
+
+          {hoverData.map((r,i)=>(
+
             <div key={i}>
-              📍 {r.title}
+              {r.title}
             </div>
+
           ))}
+
         </div>
+
       )}
+
     </div>
-  );
+
+  )
+
 }
 
 const styles = {
@@ -1023,4 +1089,6 @@ const styles = {
     color: "#64748b",
     fontSize: "14px",
   }
+
+  
 };
