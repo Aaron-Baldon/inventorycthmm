@@ -8,7 +8,7 @@ import "../styles/calendar.css";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { startOfMonth, endOfMonth } from "date-fns";
-
+import { useTheme } from "../context/ThemeContext";
 import {
   getLabRooms,
   getEvents,
@@ -25,6 +25,8 @@ function toYMD(d) {
 }
 
 export default function RoomCalendarPage() {
+
+  const { theme } = useTheme();
 
   const user = getUser();
   const isAdmin = String(user?.role || "").toLowerCase() === "admin";
@@ -407,7 +409,13 @@ export default function RoomCalendarPage() {
 
 
         {/* MAIN CALENDAR */}
-        <div className="calendarShell">
+        <div
+          className="calendarShell"
+          style={{
+            background: theme.card,
+            color: theme.text
+          }}
+        >
 
           <FullCalendar
 
