@@ -7,6 +7,7 @@ import { getUser } from "../components/services/authService";
 import "../styles/calendar.css";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 import {
   getLabRooms,
@@ -29,7 +30,7 @@ export default function RoomCalendarPage() {
   const isAdmin = String(user?.role || "").toLowerCase() === "admin";
 
   const [reserveModalOpen, setReserveModalOpen] = useState(false);
-
+  const [miniEvents, setMiniEvents] = useState([]);
   const [miniDate, setMiniDate] = useState(new Date());
 
   // ROOMS
@@ -99,13 +100,6 @@ export default function RoomCalendarPage() {
 
         setEvents(data || []);
 
-        if (Array.isArray(data)) {
-
-          const dates = [...new Set(data.map(e => e.start.slice(0,10)))];
-          setReservedDates(dates);
-
-        }
-
       } catch (e) {
 
         console.error(e);
@@ -115,6 +109,45 @@ export default function RoomCalendarPage() {
     })();
 
   }, [range, selectedRooms]);
+
+  useEffect(() => {
+
+    const start = toYMD(startOfMonth(miniDate))
+    const end = toYMD(endOfMonth(miniDate))
+
+    const load = async () => {
+
+      try {
+
+        const data = await getEvents({
+          start,
+          end,
+          roomIds: selectedRooms.length ? selectedRooms : null
+        })
+
+        setMiniEvents(data || [])
+
+        if (Array.isArray(data)) {
+
+          const dates = [...new Set(
+            data.map(e => e.start.slice(0,10))
+          )]
+
+          setReservedDates(dates)
+
+        }
+
+      } catch (e) {
+
+        console.error(e)
+
+      }
+
+    }
+
+    load()
+
+  }, [miniDate, selectedRooms])
 
 
 
@@ -253,27 +286,56 @@ export default function RoomCalendarPage() {
             value={miniDate}
             calendarType="gregory"
 
-            tileClassName={({ date }) => {
+            onActiveStartDateChange={({ activeStartDate }) => {
+              setMiniDate(activeStartDate)
+            }}
 
-              const d = toYMD(date);
+            tileClassName={({ date }) => {
+              const d = toYMD(date)
 
               if (reservedDates.includes(d)) {
-                return "reserved-day";
+                return "reserved-day"
               }
+            }}
+
+            tileContent={({ date }) => {
+
+              const d = toYMD(date)
+
+              const reservations = miniEvents.filter(
+                e => e.start.slice(0,10) === d
+              )
+
+              if (!reservations.length) return null
+
+              const tooltip = reservations
+                .map(r => `${r.title} (${r.start.slice(11,16)}-${r.end.slice(11,16)})`)
+                .join("\n")
+
+              return (
+                <div
+                  title={tooltip}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    cursor: "pointer"
+                  }}
+                />
+              )
 
             }}
 
             onChange={(date) => {
 
-              setMiniDate(date);
+              setMiniDate(date)
 
-              const ymd = toYMD(date);
+              const ymd = toYMD(date)
 
-              setSelectedDate(ymd);
+              setSelectedDate(ymd)
 
-              setPanelOpen(true);
+              setPanelOpen(true)
 
-              loadDayReservations(ymd);
+              loadDayReservations(ymd)
 
             }}
           />
