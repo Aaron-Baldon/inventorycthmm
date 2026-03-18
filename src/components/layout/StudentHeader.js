@@ -2,10 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { getUser, logout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { getBorrowRequests, getBorrowRequestItems } from "../../helper/api";
 
 export default function StudentHeader({ onMenuClick }) {
     const [showProfile, setShowProfile] = useState(false);
     const [activePanel, setActivePanel] = useState(null);
+
+    const [borrowRequests, setBorrowRequests] = useState([]);
+    const [borrowLoading, setBorrowLoading] = useState(false);
+    const [borrowError, setBorrowError] = useState("");
 
     const user = getUser();
 
@@ -23,6 +28,49 @@ export default function StudentHeader({ onMenuClick }) {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadBorrowed() {
+            if (activePanel !== "borrowed") return;
+            if (!user?.id) {
+                setBorrowRequests([]);
+                setBorrowError("Not logged in.");
+                return;
+            }
+
+            setBorrowLoading(true);
+            setBorrowError("");
+            try {
+                const requests = await getBorrowRequests({ student_id: user.id });
+                const enriched = await Promise.all(
+                    requests.map(async (r) => {
+                        try {
+                            const items = await getBorrowRequestItems(r.id);
+                            return { ...r, items };
+                        } catch {
+                            return { ...r, items: [] };
+                        }
+                    })
+                );
+
+                if (cancelled) return;
+                setBorrowRequests(enriched);
+            } catch (e) {
+                if (cancelled) return;
+                setBorrowRequests([]);
+                setBorrowError(e?.message || "Failed to load borrow history");
+            } finally {
+                if (!cancelled) setBorrowLoading(false);
+            }
+        }
+
+        loadBorrowed();
+        return () => {
+            cancelled = true;
+        };
+    }, [activePanel, user?.id]);
 
     const openPanel = (panel) => {
         setActivePanel(panel);
@@ -261,9 +309,65 @@ export default function StudentHeader({ onMenuClick }) {
                 {/* BORROWED ITEMS PANEL */}
                 {activePanel === "borrowed" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "14px" }}>
-                        <div style={{ color: labelColor, textAlign: "center" }}>
-                            No borrowed items yet.
+                        <div style={{ fontWeight: "600", fontSize: "15px", color: theme.text, textAlign: "center" }}>
+                            Borrowed Items History
                         </div>
+
+                        {borrowLoading && (
+                            <div style={{ color: labelColor, textAlign: "center" }}>Loading...</div>
+                        )}
+
+                        {!borrowLoading && borrowError && (
+                            <div style={{ color: "#c62828", textAlign: "center" }}>{borrowError}</div>
+                        )}
+
+                        {!borrowLoading && !borrowError && borrowRequests.length === 0 && (
+                            <div style={{ color: labelColor, textAlign: "center" }}>No borrowed items yet.</div>
+                        )}
+
+                        {!borrowLoading && !borrowError && borrowRequests.length > 0 && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                {borrowRequests.map((r) => (
+                                    <div
+                                        key={r.id}
+                                        style={{
+                                            border: `1px solid ${theme.border}`,
+                                            borderRadius: "10px",
+                                            padding: "10px",
+                                            background: themeName === "dark" ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                                        }}
+                                    >
+                                        <div style={{ display: "flex", justifyContent: "space-between", gap: "10px" }}>
+                                            <div style={{ fontWeight: "600" }}>#{r.id}</div>
+                                            <div style={{ color: labelColor, textTransform: "capitalize" }}>{r.status}</div>
+                                        </div>
+                                        <div style={{ fontSize: "12px", color: labelColor, marginTop: "2px" }}>
+                                            Borrow: {r.borrow_date ? String(r.borrow_date).slice(0, 10) : "—"}
+                                        </div>
+                                        <div style={{ fontSize: "12px", color: labelColor }}>
+                                            Return: {String(r.status || "").toLowerCase() === "returned"
+                                                ? String(r.returned_at || "").slice(0, 10)
+                                                : "—"}
+                                        </div>
+
+                                        <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                                            {(r.items || []).length === 0 ? (
+                                                <div style={{ fontSize: "12px", color: labelColor }}>No items found.</div>
+                                            ) : (
+                                                (r.items || []).map((it) => (
+                                                    <div key={`${r.id}-${it.item_id}`} style={{ fontSize: "13px" }}>
+                                                        <div style={{ fontWeight: "600" }}>{it.item_name}</div>
+                                                        <div style={{ fontSize: "12px", color: labelColor }}>
+                                                            Qty: {it.quantity}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 

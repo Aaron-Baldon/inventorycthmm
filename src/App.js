@@ -29,7 +29,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={(() => {
+            const user = getUser();
+            const role = String(user?.role || "").toLowerCase();
+            if (user) {
+              return <Navigate to={role === "admin" ? "/admin" : "/student"} replace />;
+            }
+            return <LoginPage />;
+          })()}
+        />
 
         {/* ✅ Student routes */}
         <Route

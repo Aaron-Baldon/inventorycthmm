@@ -33,8 +33,8 @@ export default function LoginPage() {
       const user = await login(loginValue, password);
 
       const role = String(user.role || "").toLowerCase();
-      if (role === "admin") navigate("/admin");
-      else navigate("/student");
+      if (role === "admin") navigate("/admin", { replace: true });
+      else navigate("/student", { replace: true });
     } catch (e) {
       alert(e.message || "Invalid login");
     } finally {
@@ -72,8 +72,8 @@ export default function LoginPage() {
       });
 
       const role = String(user.role || "").toLowerCase();
-      if (role === "admin") navigate("/admin");
-      else navigate("/student");
+      if (role === "admin") navigate("/admin", { replace: true });
+      else navigate("/student", { replace: true });
     } catch (e) {
       alert(e.message || "Sign up failed");
     } finally {

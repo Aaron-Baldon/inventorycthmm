@@ -27,6 +27,17 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
+function formatTime12(timeStr) {
+  const t = String(timeStr || "").slice(0, 5);
+  const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(t);
+  if (!m) return timeStr;
+  const hh = Number(m[1]);
+  const mm = m[2];
+  const ampm = hh >= 12 ? "PM" : "AM";
+  const h12 = ((hh + 11) % 12) + 1;
+  return `${h12}:${mm} ${ampm}`;
+}
+
 /* ✅ BLACK TOOLTIP */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -365,8 +376,8 @@ export default function Dashboard() {
                     </td>
 
                     <td style={styles.td}>
-                      {String(r.start_time).slice(0, 5)} –{" "}
-                      {String(r.end_time).slice(0, 5)}
+                      {formatTime12(r.start_time)} –{" "}
+                      {formatTime12(r.end_time)}
                     </td>
 
                     <td style={styles.td}>
@@ -531,7 +542,7 @@ export default function Dashboard() {
                     {dayReservations.map((r) => (
                       <div key={r.id} style={styles.panelReservationRow}>
                         <div style={{ fontWeight: 600 }}>
-                          {String(r.start_time).slice(0, 5)} – {String(r.end_time).slice(0, 5)}
+                          {formatTime12(r.start_time)} – {formatTime12(r.end_time)}
                         </div>
                         <div style={{ fontSize: "12px", color: "#64748b" }}>
                           {String(r.status || "").toLowerCase()}

@@ -4,12 +4,14 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useEffect, useState } from "react";
 
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+
 function RoomCalendar() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
     fetch(
-      "http://localhost:5000/api/room-reservations/events?start=2026-02-01&end=2026-02-28"
+      `${API_BASE}/api/room-reservations/events?start=2026-02-01&end=2026-02-28`
     )
       .then((res) => res.json())
       .then((data) => setEvents(data))
@@ -28,6 +30,8 @@ function RoomCalendar() {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay",
         }}
+        slotLabelFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
+        eventTimeFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
         events={events}
       />
     </div>

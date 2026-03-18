@@ -14,20 +14,22 @@ export default function AdminPage() {
 
   const [items, setItems] = useState([]);
 
+  const reloadItems = async () => {
+    try {
+      const data = await getItems();
+      setItems(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("getItems error:", e);
+      setItems([]);
+    }
+  };
+
   useEffect(() => {
     document.title = "Admin | Inventory System";
   }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getItems();
-        setItems(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error("getItems error:", e);
-        setItems([]);
-      }
-    })();
+    reloadItems();
   }, []);
 
   return (
@@ -52,7 +54,9 @@ export default function AdminPage() {
 
         {page === "calendar" && <RoomCalendarPage />}
 
-        {page === "borrow_requests" && <BorrowRequests />}
+        {page === "borrow_requests" && (
+          <BorrowRequests onInventoryChanged={reloadItems} />
+        )}
 
         {/* NEW FAQ PAGE */}
         {page === "faq" && (

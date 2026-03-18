@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
-const API = "http://localhost:5000/faqs";
+const FAQ_BASE = process.env.REACT_APP_CHATBOT_BASE_URL || "http://localhost:5001";
+const API = `${FAQ_BASE}/faqs`;
 
 /* ================= STYLES ================= */
 
@@ -118,11 +119,16 @@ export default function FAQManager() {
 	const [editingIndex,setEditingIndex] = useState(null);
 
 	const loadFaqs = async () => {
-
-		const res = await fetch(API);
-		const data = await res.json();
-
-		setFaqs(data);
+		try {
+			const res = await fetch(API);
+			if (!res.ok) throw new Error("Failed to load FAQs");
+			const data = await res.json();
+			setFaqs(Array.isArray(data) ? data : []);
+		} catch (e) {
+			console.error("loadFaqs error:", e);
+			setFaqs([]);
+			alert(e.message || "Failed to load FAQs");
+		}
 
 	};
 
@@ -132,14 +138,19 @@ export default function FAQManager() {
 
 
 	const addFaq = async () => {
-
-		await fetch(API,{
-			method:"POST",
-			headers:{
-				"Content-Type":"application/json"
-			},
-			body:JSON.stringify({question,answer})
-		});
+		try {
+			const res = await fetch(API,{
+				method:"POST",
+				headers:{
+					"Content-Type":"application/json"
+				},
+				body:JSON.stringify({question,answer})
+			});
+			if (!res.ok) throw new Error("Failed to add FAQ");
+		} catch (e) {
+			console.error("addFaq error:", e);
+			return alert(e.message || "Failed to add FAQ");
+		}
 
 		setQuestion("");
 		setAnswer("");
@@ -150,14 +161,19 @@ export default function FAQManager() {
 	};
 
 	const updateFaq = async () => {
-
-		await fetch(API+"/"+editingIndex,{
-			method:"PUT",
-			headers:{
-				"Content-Type":"application/json"
-			},
-			body:JSON.stringify({question,answer})
-		});
+		try {
+			const res = await fetch(API+"/"+editingIndex,{
+				method:"PUT",
+				headers:{
+					"Content-Type":"application/json"
+				},
+				body:JSON.stringify({question,answer})
+			});
+			if (!res.ok) throw new Error("Failed to update FAQ");
+		} catch (e) {
+			console.error("updateFaq error:", e);
+			return alert(e.message || "Failed to update FAQ");
+		}
 
 		setEditingIndex(null);
 		setQuestion("");
@@ -169,10 +185,15 @@ export default function FAQManager() {
 	};
 
 	const deleteFaq = async (index) => {
-
-		await fetch(API+"/"+index,{
-			method:"DELETE"
-		});
+		try {
+			const res = await fetch(API+"/"+index,{
+				method:"DELETE"
+			});
+			if (!res.ok) throw new Error("Failed to delete FAQ");
+		} catch (e) {
+			console.error("deleteFaq error:", e);
+			return alert(e.message || "Failed to delete FAQ");
+		}
 
 		loadFaqs();
 

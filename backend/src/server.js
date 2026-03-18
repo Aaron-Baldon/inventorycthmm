@@ -599,12 +599,21 @@ app.post("/api/borrow-requests", async (req, res) => {
       return res.status(400).json({ error: "items is required" });
     }
 
-    const normalizedItems = items
+    const normalizedItemsRaw = items
       .map((it) => ({
         item_id: Number(it.item_id),
         quantity: Number(it.quantity),
       }))
       .filter((it) => Number.isInteger(it.item_id) && it.item_id > 0);
+
+    const aggregated = new Map();
+    for (const it of normalizedItemsRaw) {
+      aggregated.set(it.item_id, (aggregated.get(it.item_id) || 0) + Number(it.quantity));
+    }
+    const normalizedItems = Array.from(aggregated.entries()).map(([item_id, quantity]) => ({
+      item_id,
+      quantity,
+    }));
 
     if (normalizedItems.length === 0) {
       return res.status(400).json({ error: "items must include valid item_id" });
@@ -703,74 +712,6 @@ app.post("/api/borrow-requests", async (req, res) => {
   }
 });
 
-// Student/Admin: list borrow requests (optional filter by student_id)
-app.get("/api/borrow-requests", async (req, res) => {
-  try {
-    const studentId = req.query.student_id ? Number(req.query.student_id) : null;
-    if (studentId !== null && (!Number.isInteger(studentId) || studentId <= 0)) {
-      return res.status(400).json({ error: "Invalid student_id" });
-    }
-
-    const result = await pool.query(
-      `
-      SELECT
-        br.id,
-        br.student_id,
-        u.school_id AS student_school_id,
-        u.full_name AS student_full_name,
-        br.status,
-        br.borrow_date,
-        br.return_date,
-        br.created_at
-      FROM public.borrow_requests br
-      LEFT JOIN public.users u ON br.student_id = u.id
-      WHERE ($1::int IS NULL OR br.student_id = $1::int)
-      ORDER BY br.created_at DESC, br.id DESC
-      LIMIT 200
-      `,
-      [studentId]
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Borrow requests list error:", err.message, err.code);
-    res.status(500).json({ error: "Failed to load borrow requests" });
-  }
-});
-
-// Borrow request items (join borrow_items -> items)
-app.get("/api/borrow-requests/:id/items", async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ error: "Invalid borrow request id" });
-    }
-
-    const result = await pool.query(
-      `
-      SELECT
-        bi.id,
-        bi.borrow_request_id,
-        bi.item_id,
-        bi.quantity,
-        i.item_code,
-        i.item_name,
-        i.category
-      FROM public.borrow_items bi
-      JOIN public.items i ON bi.item_id = i.id
-      WHERE bi.borrow_request_id = $1
-      ORDER BY bi.id
-      `,
-      [id]
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Borrow request items error:", err.message, err.code);
-    res.status(500).json({ error: "Failed to load borrow request items" });
-  }
-});
-
 // Admin: approve/reject a borrow request
 // Body: { status: 'approved' | 'rejected', user_id }
 // On approval: decrement items.quantity and log it.
@@ -823,33 +764,40 @@ app.patch("/api/borrow-requests/:id/status", async (req, res) => {
         return res.status(400).json({ error: "Borrow request has no items" });
       }
 
+      const requested = new Map();
+      for (const r of itemsRes.rows) {
+        const itemId = Number(r.item_id);
+        const qty = Number(r.quantity);
+        requested.set(itemId, (requested.get(itemId) || 0) + qty);
+      }
+
       // Lock items and validate availability
-      const itemIds = itemsRes.rows.map((r) => r.item_id);
+      const itemIds = Array.from(requested.keys());
       const locked = await client.query(
         `SELECT id, quantity FROM public.items WHERE id = ANY($1::int[]) FOR UPDATE`,
         [itemIds]
       );
       const byId = new Map(locked.rows.map((r) => [r.id, r]));
 
-      for (const r of itemsRes.rows) {
-        const row = byId.get(r.item_id);
+      for (const [itemId, qty] of requested.entries()) {
+        const row = byId.get(itemId);
         if (!row) {
           await client.query("ROLLBACK");
-          return res.status(404).json({ error: `Item not found: ${r.item_id}` });
+          return res.status(404).json({ error: `Item not found: ${itemId}` });
         }
-        if (Number(r.quantity) > Number(row.quantity || 0)) {
+        if (qty > Number(row.quantity || 0)) {
           await client.query("ROLLBACK");
           return res
             .status(409)
-            .json({ error: `Not enough stock for item ${r.item_id}` });
+            .json({ error: `Not enough stock for item ${itemId}` });
         }
       }
 
       // Decrement quantities
-      for (const r of itemsRes.rows) {
+      for (const [itemId, qty] of requested.entries()) {
         await client.query(
           `UPDATE public.items SET quantity = quantity - $2 WHERE id = $1`,
-          [r.item_id, Number(r.quantity)]
+          [itemId, qty]
         );
       }
 
@@ -938,21 +886,34 @@ app.post("/api/borrow-requests/:id/return", async (req, res) => {
       `SELECT item_id, quantity FROM public.borrow_items WHERE borrow_request_id = $1`,
       [id]
     );
+
     if (itemsRes.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(400).json({ error: "Borrow request has no items" });
     }
 
-    const itemIds = itemsRes.rows.map((r) => r.item_id);
-    await client.query(
+    const returned = new Map();
+    for (const r of itemsRes.rows) {
+      const itemId = Number(r.item_id);
+      const qty = Number(r.quantity);
+      returned.set(itemId, (returned.get(itemId) || 0) + qty);
+    }
+
+    const itemIds = Array.from(returned.keys());
+    const lockedItems = await client.query(
       `SELECT id FROM public.items WHERE id = ANY($1::int[]) FOR UPDATE`,
       [itemIds]
     );
 
-    for (const r of itemsRes.rows) {
+    if (lockedItems.rows.length !== itemIds.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "One or more items no longer exist" });
+    }
+
+    for (const [itemId, qty] of returned.entries()) {
       await client.query(
         `UPDATE public.items SET quantity = quantity + $2 WHERE id = $1`,
-        [r.item_id, Number(r.quantity)]
+        [itemId, qty]
       );
     }
 

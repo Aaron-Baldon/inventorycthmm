@@ -134,7 +134,7 @@ export default function BorrowTable() {
 			const refreshed = await getItems();
 			setInventory(refreshed);
 		} catch (e) {
-			setMessage("Failed to submit.");
+			setMessage(e.message || "Failed to submit.");
 		}
 	};
 

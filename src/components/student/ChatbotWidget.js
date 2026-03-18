@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 
 export default function ChatbotWidget() {
 
+	const CHATBOT_BASE = process.env.REACT_APP_CHATBOT_BASE_URL || "http://localhost:5001";
+
 	const [open, setOpen] = useState(false);
 	const [messages, setMessages] = useState([
 		{ from: "bot", text: "Hi! I’m your requisition assistant. How can I help?" }
@@ -22,7 +24,7 @@ export default function ChatbotWidget() {
 
 		try {
 
-			const response = await fetch("http://localhost:5000/chat", {
+			const response = await fetch(`${CHATBOT_BASE}/chat`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ message: input })

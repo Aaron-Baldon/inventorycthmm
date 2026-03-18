@@ -7,23 +7,12 @@ import { useTheme } from "../context/ThemeContext";
 import { themes } from "../theme/studentTheme";
 import ChatbotWidget from "../components/student/ChatbotWidget";
 
-
-import { ThemeProvider } from "../context/ThemeContext";
-
-export default function StudentRoot() {
-	return (
-		<ThemeProvider>
-			<StudentPage />
-		</ThemeProvider>
-	);
-}
-
-function StudentPage() {
+export default function StudentPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [page, setPage] = useState("home");
   const [notification, setNotification] = useState("");
   const { theme } = useTheme();
-    const [showInbox, setShowInbox] = useState(false);
+  const [showInbox, setShowInbox] = useState(false);
 
   useEffect(() => {
     document.title = "Student | Inventory System";

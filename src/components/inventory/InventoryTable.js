@@ -233,9 +233,9 @@ const isSelected = (id) => selectedIds.includes(id);
 
 
 					<button
-						disabled={!selectedItem}
+						disabled={selectedIds.length === 0}
 						onClick={deleteSelectedItems}
-						style={dangerBtn(!selectedItem)}
+						style={dangerBtn(selectedIds.length === 0)}
 					>
 						Delete
 					</button>
@@ -285,7 +285,7 @@ const isSelected = (id) => selectedIds.includes(id);
 									transition: "background 0.2s ease"
 								}}
 							>
-								<td style={td}>
+								<td style={td} onClick={(e) => e.stopPropagation()}>
 									<input
 										type="checkbox"
 										checked={selectedIds.includes(item.id)}

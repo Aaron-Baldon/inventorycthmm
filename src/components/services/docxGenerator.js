@@ -5,6 +5,15 @@ export function generateBorrowDoc(studentInfo, selectedItems, products) {
     const now = new Date();
     const controlNo = "CTL-" + now.getTime();
 
+    const dateTimeText = now.toLocaleString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    });
+
     const tableRows = selectedItems.map((item, idx) => {
         const product = products.find((p) => p.id === item.id);
         return new TableRow({
@@ -27,7 +36,7 @@ export function generateBorrowDoc(studentInfo, selectedItems, products) {
                     new Paragraph({ children: [new TextRun("Borrow Form\n\n")] }),
                     new Paragraph({ children: [new TextRun(`Student Name: ${studentInfo.name}`)] }),
                     new Paragraph({ children: [new TextRun(`Laboratory No: ${studentInfo.labNo}`)] }),
-                    new Paragraph({ children: [new TextRun(`Date & Time: ${now.toLocaleString()}`)] }),
+                    new Paragraph({ children: [new TextRun(`Date & Time: ${dateTimeText}`)] }),
                     new Paragraph({ children: [new TextRun(`Control No: ${controlNo}\n\n`)] }),
                     new Table({
                         rows: [

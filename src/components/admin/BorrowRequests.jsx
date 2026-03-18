@@ -7,6 +7,22 @@ import {
   returnBorrowRequest,
 } from "../../helper/api";
 
+function formatDateTime12(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    return String(value);
+  }
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 const th = {
   padding: "14px",
   border: "1px solid #cfd8e3",
@@ -60,7 +76,7 @@ const btnReturn = {
   fontWeight: 700,
 };
 
-export default function BorrowRequests() {
+export default function BorrowRequests({ onInventoryChanged }) {
   const user = getUser();
 
   const [requests, setRequests] = useState([]);
@@ -135,6 +151,14 @@ export default function BorrowRequests() {
       setMessage(`✅ Request ${status}.`);
       await loadRequests();
 
+      if (typeof onInventoryChanged === "function" && status === "approved") {
+        try {
+          await onInventoryChanged();
+        } catch {
+          // ignore
+        }
+      }
+
       // refresh selected row
       const updatedSelected = requests.find((r) => r.id === reqId);
       if (updatedSelected) {
@@ -161,6 +185,14 @@ export default function BorrowRequests() {
       setMessage("✅ Marked as returned.");
       setConditionNotes("");
       await loadRequests();
+
+      if (typeof onInventoryChanged === "function") {
+        try {
+          await onInventoryChanged();
+        } catch {
+          // ignore
+        }
+      }
 
       // reload items panel (still useful to show what was returned)
       if (selectedRequest?.id === reqId) {
@@ -272,8 +304,12 @@ export default function BorrowRequests() {
                     <td style={td}>{r.student_school_id || r.student_id}</td>
                     <td style={td}>{r.status}</td>
                     <td style={td}>{String(r.borrow_date || "").slice(0, 10)}</td>
-                    <td style={td}>{String(r.return_date || "").slice(0, 10)}</td>
-                    <td style={td}>{String(r.created_at || "").replace("T", " ").slice(0, 19)}</td>
+                    <td style={td}>
+                      {String(r.status || "").toLowerCase() === "returned"
+                        ? String(r.returned_at || "").slice(0, 10)
+                        : "—"}
+                    </td>
+                    <td style={td}>{formatDateTime12(r.created_at)}</td>
                   </tr>
                 );
               })

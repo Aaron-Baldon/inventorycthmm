@@ -24,6 +24,17 @@ function toYMD(d) {
   return `${y}-${m}-${day}`;
 }
 
+function formatTime12(timeStr) {
+  const t = String(timeStr || "").slice(0, 5);
+  const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(t);
+  if (!m) return timeStr;
+  const hh = Number(m[1]);
+  const mm = m[2];
+  const ampm = hh >= 12 ? "PM" : "AM";
+  const h12 = ((hh + 11) % 12) + 1;
+  return `${h12}:${mm} ${ampm}`;
+}
+
 export default function RoomCalendarPage() {
 
   const { theme } = useTheme();
@@ -365,6 +376,8 @@ export default function RoomCalendarPage() {
     center:"title",
     right:"timeGridWeek,timeGridDay,dayGridMonth"
   }}
+  slotLabelFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
+  eventTimeFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
   slotMinTime="07:00:00"
   slotMaxTime="21:00:00"
   nowIndicator={true}
@@ -426,7 +439,7 @@ export default function RoomCalendarPage() {
 
                 <div key={r.id} style={{marginBottom:10}}>
 
-                  {r.start_time.slice(0,5)} - {r.end_time.slice(0,5)}
+                  {formatTime12(r.start_time)} - {formatTime12(r.end_time)}
 
                   <div>Status: {r.status}</div>
 

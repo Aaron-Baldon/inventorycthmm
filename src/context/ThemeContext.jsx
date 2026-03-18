@@ -13,6 +13,12 @@ export function ThemeProvider({ children }) {
 		localStorage.setItem("theme", themeName);
 	}, [themeName]);
 
+	useEffect(() => {
+		const root = document.documentElement;
+		if (themeName === "dark") root.classList.add("dark");
+		else root.classList.remove("dark");
+	}, [themeName]);
+
 	const toggleTheme = () => {
 		setThemeName(prev => (prev === "dark" ? "light" : "dark"));
 	};
