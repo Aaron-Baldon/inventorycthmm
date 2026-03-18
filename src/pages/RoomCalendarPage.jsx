@@ -42,8 +42,6 @@ export default function RoomCalendarPage() {
   const user = getUser();
   const isAdmin = String(user?.role || "").toLowerCase() === "admin";
 
-  const [reserveModalOpen, setReserveModalOpen] = useState(false);
-  const [miniEvents, setMiniEvents] = useState([]);
   const [miniDate, setMiniDate] = useState(new Date());
 
   // ROOMS
@@ -66,8 +64,6 @@ export default function RoomCalendarPage() {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("11:00");
   const [message, setMessage] = useState("");
-
-
 
   // LOAD ROOMS
   useEffect(() => {
@@ -93,8 +89,6 @@ export default function RoomCalendarPage() {
     })();
 
   }, []);
-
-
 
   // LOAD EVENTS
   useEffect(() => {
@@ -138,8 +132,6 @@ export default function RoomCalendarPage() {
           roomIds: selectedRooms.length ? selectedRooms : null
         })
 
-        setMiniEvents(data || [])
-
         if (Array.isArray(data)) {
 
           const dates = [...new Set(
@@ -161,8 +153,6 @@ export default function RoomCalendarPage() {
     load()
 
   }, [miniDate, selectedRooms])
-
-
 
   const loadDayReservations = async (dateStr) => {
 
@@ -190,8 +180,6 @@ export default function RoomCalendarPage() {
 
   };
 
-
-
   const handleSetStatus = async (reservationId, status) => {
 
     if (!isAdmin) return;
@@ -213,8 +201,6 @@ export default function RoomCalendarPage() {
     }
 
   };
-
-
 
   const submitReservation = async () => {
 
@@ -259,8 +245,6 @@ export default function RoomCalendarPage() {
 
   };
 
-
-
   const pendingCount = useMemo(() => {
 
     return dayReservations.filter(r =>
@@ -269,242 +253,198 @@ export default function RoomCalendarPage() {
 
   }, [dayReservations]);
 
-
-
   return (
 
-  <div className={theme === "dark" ? "dark" : ""}>
+    <div className={theme === "dark" ? "dark" : ""}>
 
-    <div style={{ padding: "0px 30px 10px 30px" }}>
+      <div style={{ padding: "0px 30px 10px 30px" }}>
 
-      <h2>Lab Room Reservations</h2>
+        <h2>Lab Room Reservations</h2>
 
-      <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: panelOpen ? "260px minmax(0,1fr) 320px" : "260px minmax(0,1fr)",
-    gap: 16,
-    overflowX: "auto",
-    overflowX: "auto"
-  }}
->
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: panelOpen ? "260px minmax(0,1fr) 320px" : "260px minmax(0,1fr)",
+            gap: 16,
+            overflowX: "auto"
+          }}
+        >
 
-        {/* SIDEBAR */}
-        <div className="sidebar">
+          {/* SIDEBAR */}
+          <div className="sidebar">
 
-          <Calendar
-            value={miniDate}
-            calendarType="gregory"
-            onActiveStartDateChange={({ activeStartDate }) => {
-              setMiniDate(activeStartDate)
-            }}
-            tileClassName={({ date }) => {
-              const d = toYMD(date)
-              if (reservedDates.includes(d)) return "reserved-day"
-            }}
-            onChange={(date) => {
-              setMiniDate(date)
-              const ymd = toYMD(date)
-              setSelectedDate(ymd)
-              setPanelOpen(true)
-              loadDayReservations(ymd)
-            }}
-          />
+            <Calendar
+              value={miniDate}
+              calendarType="gregory"
+              onActiveStartDateChange={({ activeStartDate }) => {
+                setMiniDate(activeStartDate)
+              }}
+              tileClassName={({ date }) => {
+                const d = toYMD(date)
+                if (reservedDates.includes(d)) return "reserved-day"
+              }}
+              onChange={(date) => {
+                setMiniDate(date)
+                const ymd = toYMD(date)
+                setSelectedDate(ymd)
+                setPanelOpen(true)
+                loadDayReservations(ymd)
+              }}
+            />
 
-          <div className="roomListBox">
+            <div className="roomListBox">
 
-            <h4>My Calendars</h4>
+              <h4>My Calendars</h4>
 
-            <div className="roomList">
+              <div className="roomList">
 
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedRooms.length === rooms.length}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedRooms(rooms.map(r => r.id));
-                    } else {
-                      setSelectedRooms([]);
-                    }
-                  }}
-                />
-                All Rooms
-              </label>
-
-              {rooms.map((r) => (
-                <label key={r.id}>
+                <label>
                   <input
                     type="checkbox"
-                    checked={selectedRooms.includes(r.id)}
+                    checked={selectedRooms.length === rooms.length}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedRooms([...selectedRooms, r.id]);
+                        setSelectedRooms(rooms.map(r => r.id));
                       } else {
-                        setSelectedRooms(
-                          selectedRooms.filter(id => id !== r.id)
-                        );
+                        setSelectedRooms([]);
                       }
                     }}
                   />
-                  {r.room_name}
+                  All Rooms
                 </label>
-              ))}
 
-            </div>
+                {rooms.map((r) => (
+                  <label key={r.id}>
+                    <input
+                      type="checkbox"
+                      checked={selectedRooms.includes(r.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRooms([...selectedRooms, r.id]);
+                        } else {
+                          setSelectedRooms(
+                            selectedRooms.filter(id => id !== r.id)
+                          );
+                        }
+                      }}
+                    />
+                    {r.room_name}
+                  </label>
+                ))}
 
-          </div>
-
-        </div>
-
-        {/* MAIN CALENDAR */}
-<div
-  className="calendarShell"
-  style={{
-    background: theme.card,
-    color: theme.text,
-    marginTop: "1px" // 🔥 adjust mo (-5 to -20)
-  }}
->
-
-<FullCalendar
-  plugins={[dayGridPlugin,timeGridPlugin,interactionPlugin]}
-  initialView="timeGridWeek"
-  height="100%"
-  headerToolbar={{
-    left:"prev,next today",
-    center:"title",
-    right:"timeGridWeek,timeGridDay,dayGridMonth"
-  }}
-  slotLabelFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
-  eventTimeFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
-  slotMinTime="07:00:00"
-  slotMaxTime="21:00:00"
-  nowIndicator={true}
-  allDaySlot={false}
-  events={events}
-
-  datesSet={(info) => {
-    setRange({
-      start: toYMD(info.start),
-      end: toYMD(info.end)
-    });
-  }}
-
-  dateClick={(arg) => {
-    setSelectedDate(arg.dateStr);
-    setReserveModalOpen(true);
-  }}
-/>
-        </div>
-
-        {/* ✅ SIDE PANEL (NOW INSIDE GRID) */}
-        {panelOpen && (
-  <div
-    style={{
-      background: theme === "dark" ? "#101214" : "#ffffff",
-      border: theme === "dark"
-        ? "1px solid rgba(255,255,255,0.2)"
-        : "1px solid rgba(0,0,0,0.1)",
-      borderRadius: 18,
-      padding: 16,
-
-      height: "fit-content",   // 🔥 sakto lang sa laman
-      maxHeight: "80vh",       // 🔥 may limit
-      overflowY: "auto"        // 🔥 scroll kung sumobra
-    }}
-  >
-
-            <div style={{display:"flex",justifyContent:"space-between"}}>
-
-              <div>
-                <div className="selectedDate">{selectedDate}</div>
-
-                {isAdmin && (
-                  <div>Pending: {pendingCount}</div>
-                )}
               </div>
 
-              <button onClick={()=>setPanelOpen(false)}>
-                Close
-              </button>
-
-            </div>
-
-            <hr/>
-
-            {loadingDay
-  ? <div className="loadingText">Loading...</div>
-              : dayReservations.map(r => (
-
-                <div key={r.id} style={{marginBottom:10}}>
-
-                  {formatTime12(r.start_time)} - {formatTime12(r.end_time)}
-
-                  <div>Status: {r.status}</div>
-
-                  {isAdmin && r.status==="pending" && (
-
-                    <div style={{display:"flex",gap:8}}>
-
-                      <button onClick={()=>handleSetStatus(r.id,"approved")}>
-                        Approve
-                      </button>
-
-                      <button onClick={()=>handleSetStatus(r.id,"rejected")}>
-                        Reject
-                      </button>
-
-                    </div>
-
-                  )}
-
-                </div>
-
-            ))}
-
-            <hr/>
-
-            <div>
-
-              <input
-                type="time"
-                value={startTime}
-                onChange={e=>setStartTime(e.target.value)}
-              />
-
-              <input
-                type="time"
-                value={endTime}
-                onChange={e=>setEndTime(e.target.value)}
-              />
-
-              <button onClick={submitReservation}>
-                Reserve
-              </button>
-
-              {message && (
-  <div
-    style={{
-      color: theme === "dark" ? "#010101" : "#010101", // green success
-      fontWeight: "600"
-    }}
-  >
-    {message}
-  </div>
-)}
-
             </div>
 
           </div>
 
-        )}
+          {/* MAIN CALENDAR */}
+          <div
+            className="calendarShell"
+            style={{
+              background: theme.card,
+              color: theme.text,
+              marginTop: "1px",
+            }}
+          >
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              height="100%"
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "timeGridWeek,timeGridDay,dayGridMonth",
+              }}
+              slotLabelFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
+              eventTimeFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
+              slotMinTime="07:00:00"
+              slotMaxTime="21:00:00"
+              nowIndicator={true}
+              allDaySlot={false}
+              events={events}
+              datesSet={(info) => {
+                setRange({
+                  start: toYMD(info.start),
+                  end: toYMD(info.end),
+                });
+              }}
+              dateClick={(arg) => {
+                setSelectedDate(arg.dateStr);
+              }}
+            />
+          </div>
 
+          {/* SIDE PANEL */}
+          {panelOpen && (
+            <div
+              style={{
+                background: theme === "dark" ? "#101214" : "#ffffff",
+                border:
+                  theme === "dark"
+                    ? "1px solid rgba(255,255,255,0.2)"
+                    : "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 18,
+                padding: 16,
+                height: "fit-content",
+                maxHeight: "80vh",
+                overflowY: "auto",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div>
+                  <div className="selectedDate">{selectedDate}</div>
+
+                  {isAdmin && <div>Pending: {pendingCount}</div>}
+                </div>
+
+                <button onClick={() => setPanelOpen(false)}>Close</button>
+              </div>
+
+              <hr />
+
+              {loadingDay ? (
+                <div className="loadingText">Loading...</div>
+              ) : (
+                dayReservations.map((r) => (
+                  <div key={r.id} style={{ marginBottom: 10 }}>
+                    {formatTime12(r.start_time)} - {formatTime12(r.end_time)}
+
+                    <div>Status: {r.status}</div>
+
+                    {isAdmin && r.status === "pending" && (
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button onClick={() => handleSetStatus(r.id, "approved")}>Approve</button>
+                        <button onClick={() => handleSetStatus(r.id, "rejected")}>Reject</button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+
+              <hr />
+
+              <div>
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+
+                <button onClick={submitReservation}>Reserve</button>
+
+                {message && (
+                  <div
+                    style={{
+                      color: theme === "dark" ? "#010101" : "#010101",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {message}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-
     </div>
-
-  </div>
-
-);
+  );
 }

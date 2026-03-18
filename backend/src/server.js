@@ -712,6 +712,80 @@ app.post("/api/borrow-requests", async (req, res) => {
   }
 });
 
+// Student/Admin: list borrow requests (optional filter by student_id)
+app.get("/api/borrow-requests", async (req, res) => {
+  try {
+    const studentId = req.query.student_id ? Number(req.query.student_id) : null;
+    if (studentId !== null && (!Number.isInteger(studentId) || studentId <= 0)) {
+      return res.status(400).json({ error: "Invalid student_id" });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        br.id,
+        br.student_id,
+        u.school_id AS student_school_id,
+        u.full_name AS student_full_name,
+        br.status,
+        br.borrow_date,
+        br.return_date,
+        r.returned_at,
+        br.created_at
+      FROM public.borrow_requests br
+      LEFT JOIN public.users u ON br.student_id = u.id
+      LEFT JOIN (
+        SELECT borrow_request_id, MAX(returned_at) AS returned_at
+        FROM public.returns
+        GROUP BY borrow_request_id
+      ) r ON r.borrow_request_id = br.id
+      WHERE ($1::int IS NULL OR br.student_id = $1::int)
+      ORDER BY br.created_at DESC, br.id DESC
+      LIMIT 200
+      `,
+      [studentId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Borrow requests list error:", err.message, err.code);
+    res.status(500).json({ error: "Failed to load borrow requests" });
+  }
+});
+
+// Borrow request items (join borrow_items -> items)
+app.get("/api/borrow-requests/:id/items", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid borrow request id" });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        bi.id,
+        bi.borrow_request_id,
+        bi.item_id,
+        bi.quantity,
+        i.item_code,
+        i.item_name,
+        i.category
+      FROM public.borrow_items bi
+      JOIN public.items i ON bi.item_id = i.id
+      WHERE bi.borrow_request_id = $1
+      ORDER BY bi.id
+      `,
+      [id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Borrow request items error:", err.message, err.code);
+    res.status(500).json({ error: "Failed to load borrow request items" });
+  }
+});
+
 // Admin: approve/reject a borrow request
 // Body: { status: 'approved' | 'rejected', user_id }
 // On approval: decrement items.quantity and log it.

@@ -9,7 +9,7 @@ import {
   Cell,
   LabelList,
   Line,
-  LineChart
+  LineChart,
 } from "recharts";
 import {
   getAdminStats,
@@ -23,14 +23,11 @@ import {
 
 import { getUser } from "../services/authService";
 
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
-
 function formatTime12(timeStr) {
   const t = String(timeStr || "").slice(0, 5);
   const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(t);
   if (!m) return timeStr;
+
   const hh = Number(m[1]);
   const mm = m[2];
   const ampm = hh >= 12 ? "PM" : "AM";
@@ -61,8 +58,6 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-
-
 export default function Dashboard() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -74,12 +69,10 @@ export default function Dashboard() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   const user = getUser();
   const [stats, setStats] = useState(null);
   const [reservations, setReservations] = useState([]);
-  const [calendarReservations, setCalendarReservations] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   const [rooms, setRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
@@ -107,40 +100,18 @@ export default function Dashboard() {
     ? Math.min(100, Math.round((usedRooms / totalRooms) * 100))
     : 0;
 
-  const calendarEvents = useMemo(() => {
-    return calendarReservations.map((e) => ({
-      title: e.title,
-      date: String(e.start).slice(0, 10),
-    }));
-  }, [calendarReservations]);
-
-  const loadCalendarEvents = async () => {
+  const refresh = async () => {
     try {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .slice(0, 10);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        .toISOString()
-        .slice(0, 10);
-      const data = await getEvents({ start, end });
-      setCalendarReservations(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setCalendarReservations([]);
+      const s = await getAdminStats();
+      setStats(s?.reservations || null);
+
+      const list = await getAdminRoomReservations();
+      setReservations(Array.isArray(list) ? list : []);
+    } catch {
+      setStats(null);
+      setReservations([]);
     }
   };
-
-  // format Date -> YYYY-MM-DD (local)
-  const toYMD = (d) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-
-  useEffect(() => {
-    loadCalendarEvents();
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -158,7 +129,11 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadDayReservations = async (roomId, dateStr) => {
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  async function loadDayReservations(roomId, dateStr) {
     if (!roomId || !dateStr) return;
     setLoadingDay(true);
     setPanelMessage("");
@@ -167,11 +142,11 @@ export default function Dashboard() {
       setDayReservations(Array.isArray(data) ? data : []);
     } catch (e) {
       setDayReservations([]);
-      setPanelMessage(e.message || "Failed to load reservations.");
+      setPanelMessage(e?.message || "Failed to load reservations.");
     } finally {
       setLoadingDay(false);
     }
-  };
+  }
 
   useEffect(() => {
     if (panelOpen && selectedRoomId && selectedDate) {
@@ -180,27 +155,8 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoomId]);
 
-  const refresh = async () => {
-    setLoading(true);
-    setMessage("");
-    try {
-      const s = await getAdminStats();
-      setStats(s?.reservations || null);
-
-      const list = await getAdminRoomReservations();
-      setReservations(list);
-    } catch (e) {
-      setMessage(e.message || "Failed to load dashboard data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    refresh();
-  }, []);
-
   const total = stats?.total ?? 0;
+
   const pending = stats?.pending ?? 0;
   const approved = stats?.approved ?? 0;
   const cancelled = stats?.cancelled ?? 0;
@@ -235,13 +191,9 @@ export default function Dashboard() {
 
   const handleSetStatus = async (id, status) => {
     try {
-      setMessage("");
       await updateReservationStatus({ id, status });
-      setMessage(`Reservation ${status}.`);
       await refresh();
-    } catch (e) {
-      setMessage(e.message || "Failed to update status.");
-    }
+    } catch (e) {}
   };
 
   const getStatusColor = (status) => {
@@ -275,10 +227,10 @@ export default function Dashboard() {
           }),
         }}
       >
-      <Card title="Total Reservations" value={total} isMobile={isMobile} />
-      <Card title="Pending" value={pending} isMobile={isMobile} />
-      <Card title="Approved" value={approved} isMobile={isMobile} />
-      <Card title="Cancelled" value={cancelled} isMobile={isMobile} />
+        <Card title="Total Reservations" value={total} isMobile={isMobile} />
+        <Card title="Pending" value={pending} isMobile={isMobile} />
+        <Card title="Approved" value={approved} isMobile={isMobile} />
+        <Card title="Cancelled" value={cancelled} isMobile={isMobile} />
       </div>
 
       {/* CHARTS */}
@@ -327,7 +279,6 @@ export default function Dashboard() {
           onDateClick={(dateStr) => {
             setSelectedDate(dateStr);
             setPanelOpen(true);
-            setPanelMessage("");
             if (selectedRoomId) loadDayReservations(selectedRoomId, dateStr);
           }}
         />
@@ -484,8 +435,6 @@ export default function Dashboard() {
 
               <button
                 onClick={async () => {
-                  setPanelMessage("");
-
                   if (!selectedRoomId) return setPanelMessage("Please select a room.");
                   if (!selectedDate) return setPanelMessage("Please select a date.");
                   if (!startTime || !endTime) return setPanelMessage("Start and end time are required.");
@@ -517,7 +466,6 @@ export default function Dashboard() {
                     });
                     setPanelMessage("✅ Reservation submitted (pending approval). ");
                     await loadDayReservations(selectedRoomId, selectedDate);
-                    await loadCalendarEvents();
                   } catch (e) {
                     setPanelMessage(e.message || "Reservation failed.");
                   }
