@@ -2,7 +2,6 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
-
   "dependencies": {
     "@fullcalendar/bootstrap5": "^6.1.20",
     "@fullcalendar/daygrid": "^6.1.20",
@@ -22,6 +21,7 @@
     "file-saver": "^2.0.5",
     "pizzip": "^3.2.0",
     "react": "^19.2.3",
+    "react-calendar": "^6.0.0",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.10.1",
     "react-scripts": "5.0.1",
@@ -30,23 +30,29 @@
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5"
   },
-
   "scripts": {
     "start": "concurrently \"npm run react\" \"npm run python\"",
     "react": "react-scripts start",
     "python": "cd server && python server.py"
   },
-
-
   "eslintConfig": {
-    "extends": ["react-app", "react-app/jest"]
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
-
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
-
   "devDependencies": {
     "concurrently": "^9.2.1"
   }
