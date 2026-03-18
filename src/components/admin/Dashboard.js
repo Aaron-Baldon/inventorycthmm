@@ -50,7 +50,19 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+
+
 export default function Dashboard() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const user = getUser();
   const [stats, setStats] = useState(null);
   const [reservations, setReservations] = useState([]);
@@ -240,21 +252,33 @@ export default function Dashboard() {
       {/* HEADER */}
       <div style={styles.header}>
         <h2>Dashboard User</h2>
-        <button onClick={refresh} style={styles.refreshBtn}>
-          Refresh
-        </button>
       </div>
 
       {/* KPI CARDS */}
-      <div style={styles.topCards}>
-        <Card title="Total Reservations" value={total} />
-        <Card title="Pending" value={pending} color="#facc15" />
-        <Card title="Approved" value={approved} color="#2563eb" />
-        <Card title="Cancelled" value={cancelled} color="#dc2626" />
+      <div
+        style={{
+          ...styles.topCards,
+          ...(isMobile && {
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px", // 🔥 dagdag space
+          }),
+        }}
+      >
+      <Card title="Total Reservations" value={total} isMobile={isMobile} />
+      <Card title="Pending" value={pending} isMobile={isMobile} />
+      <Card title="Approved" value={approved} isMobile={isMobile} />
+      <Card title="Cancelled" value={cancelled} isMobile={isMobile} />
       </div>
 
       {/* CHARTS */}
-      <div style={styles.chartGrid}>
+      <div
+        style={{
+          ...styles.chartGrid,
+          ...(isMobile && {
+            gridTemplateColumns: "1fr",
+          }),
+        }}
+      >
         <ChartCard title="Reservation Status">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={statusData}>
@@ -303,7 +327,12 @@ export default function Dashboard() {
         <h3>Pending Room Reservations</h3>
 
         <div style={styles.tableCard}>
-          <table style={styles.table}>
+          <table
+            style={{
+              ...styles.table,
+              minWidth: isMobile ? "600px" : "100%", // 🔥 para scrollable
+            }}
+          >
             <thead>
               <tr>
                 <th style={styles.th}>Requested By</th>
@@ -520,13 +549,18 @@ export default function Dashboard() {
   );
 }
 
-function Card({ title, value, dark }) {
+function Card({ title, value, dark, isMobile }) {
   return (
     <div
       style={{
         ...styles.statCard,
         background: dark ? "#1f3b63" : "#fff",
         color: dark ? "#fff" : "#333",
+
+        ...(isMobile && {
+          padding: "14px",
+          minHeight: "90px",
+        }),
       }}
     >
       <div style={styles.statTop}>
@@ -534,7 +568,14 @@ function Card({ title, value, dark }) {
         <span style={styles.icon}>★</span>
       </div>
 
-      <h2 style={{ marginTop: "10px" }}>{value}</h2>
+      <h2
+        style={{
+          marginTop: isMobile ? "6px" : "10px",
+          fontSize: isMobile ? "18px" : "24px",
+        }}
+      >
+        {value}
+      </h2>
     </div>
   );
 }
@@ -552,7 +593,7 @@ function ChartCard({ title, children }) {
 function ProgressWidget({ usageRate, usedRooms, availableRooms }) {
   return (
     <div style={styles.progressCard}>
-      <h4>Room Usage</h4>
+      <h4 style={{ marginBottom: "10px" }}>Room Usage</h4>
 
       <div
         style={{
@@ -807,8 +848,8 @@ const styles = {
     padding: "0",
     borderRadius: "12px",
     boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-    overflow: "hidden",
-    marginTop: "10px",
+    overflowX: "auto", // 🔥 ADD THIS
+    WebkitOverflowScrolling: "touch",
   },
 
   table: {
@@ -863,21 +904,34 @@ const styles = {
     padding: "16px",
     borderRadius: "10px",
     boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-    textAlign: "center",
-    height: "320px",
+    height: "420px",
+
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center", // 🔥 THIS centers vertically
+    alignItems: "center",
   },
 
   donut: {
-    width: "120px",
-    height: "120px",
+    width: "160px",
+    height: "160px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     margin: "20px auto",
+    position: "relative"
   },
 
   donutInner: {
+    position: "absolute",
+    width: "100px",
+    height: "100px",
+    background: "#fff",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     fontSize: "22px",
     fontWeight: "bold",
   },
@@ -908,7 +962,11 @@ const styles = {
     padding: "18px",
     borderRadius: "10px",
     boxShadow: "0 6px 14px rgba(0,0,0,0.1)",
-    height: "100%",
+    height: "auto",
+
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between", // 🔥 important
   },
 
   statTop: {
