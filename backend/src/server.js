@@ -47,6 +47,18 @@ async function getRoleIdByName(roleName) {
   return r.rows[0]?.id || null;
 }
 
+async function ensureProblemReportsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS public.problem_reports (
+      id SERIAL PRIMARY KEY,
+      student_id INT NULL REFERENCES public.users(id) ON DELETE SET NULL,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+}
+
 // --------------------
 // ✅ AUTH ROUTES
 // --------------------
@@ -185,9 +197,77 @@ app.post("/api/auth/login", async (req, res) => {
 
 // --------------------
 // ✅ HEALTH CHECK
-// --------------------
+// -------------------- 
 app.get("/api/health", async (req, res) => {
   res.json({ ok: true, message: "Backend is running" });
+});
+
+// --------------------
+// ✅ PROBLEM REPORTS
+// --------------------
+
+// Student: submit a problem report
+// Body: { student_id, message }
+app.post("/api/problem-reports", async (req, res) => {
+  try {
+    const { student_id, message } = req.body;
+
+    const studentIdNum = Number(student_id);
+    if (!Number.isInteger(studentIdNum) || studentIdNum <= 0) {
+      return res.status(400).json({ error: "student_id must be a valid integer" });
+    }
+
+    const msg = String(message || "").trim();
+    if (!msg) {
+      return res.status(400).json({ error: "message is required" });
+    }
+
+    await ensureProblemReportsTable();
+
+    const inserted = await pool.query(
+      `
+      INSERT INTO public.problem_reports (student_id, message)
+      VALUES ($1, $2)
+      RETURNING id, student_id, message, status, created_at
+      `,
+      [studentIdNum, msg]
+    );
+
+    return res.status(201).json(inserted.rows[0]);
+  } catch (err) {
+    console.error("Create problem report error:", err.message, err.code);
+    return res.status(500).json({ error: "Failed to submit report" });
+  }
+});
+
+// Admin: list problem reports
+app.get("/api/problem-reports", async (req, res) => {
+  try {
+    await ensureProblemReportsTable();
+
+    const result = await pool.query(
+      `
+      SELECT
+        pr.id,
+        pr.student_id,
+        u.school_id AS student_school_id,
+        u.full_name AS student_full_name,
+        u.email AS student_email,
+        pr.message,
+        pr.status,
+        pr.created_at
+      FROM public.problem_reports pr
+      LEFT JOIN public.users u ON pr.student_id = u.id
+      ORDER BY pr.created_at DESC, pr.id DESC
+      LIMIT 200
+      `
+    );
+
+    return res.json(result.rows);
+  } catch (err) {
+    console.error("List problem reports error:", err.message, err.code);
+    return res.status(500).json({ error: "Failed to load reports" });
+  }
 });
 
 // --------------------

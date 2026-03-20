@@ -7,6 +7,7 @@ import RoomCalendarPage from "./RoomCalendarPage";
 import FAQManager from "../components/admin/FAQManager"
 import { getItems } from "../helper/api";
 import BorrowRequests from "../components/admin/BorrowRequests";
+import ProblemReports from "../components/admin/ProblemReports";
 
 export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,6 +57,10 @@ export default function AdminPage() {
 
         {page === "borrow_requests" && (
           <BorrowRequests onInventoryChanged={reloadItems} />
+        )}
+
+        {page === "problem_reports" && (
+          <ProblemReports />
         )}
 
         {/* NEW FAQ PAGE */}

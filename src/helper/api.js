@@ -261,3 +261,25 @@ export async function returnBorrowRequest(id, { user_id, condition_notes }) {
   if (!ok) throw new Error(data?.error || "Failed to mark returned");
   return data;
 }
+
+// --------------------
+// PROBLEM REPORTS
+// --------------------
+export async function submitProblemReport({ student_id, message }) {
+  const res = await fetch(`${API_BASE}/api/problem-reports`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ student_id, message }),
+  });
+
+  const { ok, data } = await parseJson(res);
+  if (!ok) throw new Error(data?.error || "Failed to submit report");
+  return data;
+}
+
+export async function getProblemReports() {
+  const res = await fetch(`${API_BASE}/api/problem-reports`);
+  const { ok, data } = await parseJson(res);
+  if (!ok) throw new Error(data?.error || "Failed to load reports");
+  return Array.isArray(data) ? data : [];
+}

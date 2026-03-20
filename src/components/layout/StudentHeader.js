@@ -2,7 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { getUser, logout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
-import { getBorrowRequests, getBorrowRequestItems } from "../../helper/api";
+import {
+    getBorrowRequests,
+    getBorrowRequestItems,
+    submitProblemReport,
+} from "../../helper/api";
 
 export default function StudentHeader({ onMenuClick }) {
     const [showProfile, setShowProfile] = useState(false);
@@ -11,6 +15,9 @@ export default function StudentHeader({ onMenuClick }) {
     const [borrowRequests, setBorrowRequests] = useState([]);
     const [borrowLoading, setBorrowLoading] = useState(false);
     const [borrowError, setBorrowError] = useState("");
+
+    const [reportMessage, setReportMessage] = useState("");
+    const [reportLoading, setReportLoading] = useState(false);
 
     const user = getUser();
 
@@ -79,6 +86,30 @@ export default function StudentHeader({ onMenuClick }) {
 
     const closePanel = () => {
         setActivePanel(null);
+    };
+
+    const handleReportSubmit = async () => {
+        const msg = String(reportMessage || "").trim();
+        if (!user?.id) {
+            alert("Not logged in.");
+            return;
+        }
+        if (!msg) {
+            alert("Please describe the problem.");
+            return;
+        }
+
+        setReportLoading(true);
+        try {
+            await submitProblemReport({ student_id: user.id, message: msg });
+            setReportMessage("");
+            alert("Report submitted.");
+            setActivePanel(null);
+        } catch (e) {
+            alert(e?.message || "Failed to submit report");
+        } finally {
+            setReportLoading(false);
+        }
     };
 
     // Theme-based colors
@@ -380,6 +411,8 @@ export default function StudentHeader({ onMenuClick }) {
 
                         <textarea
                             placeholder="Describe the problem..."
+                            value={reportMessage}
+                            onChange={(e) => setReportMessage(e.target.value)}
                             style={{
                                 width: "100%",
                                 minHeight: "80px",
@@ -395,6 +428,8 @@ export default function StudentHeader({ onMenuClick }) {
                         />
 
                         <button
+                            onClick={handleReportSubmit}
+                            disabled={reportLoading}
                             style={{
                                 padding: "9px 14px",
                                 background: buttonBg,
@@ -406,7 +441,7 @@ export default function StudentHeader({ onMenuClick }) {
                                 width: "100%"
                             }}
                         >
-                            Submit
+                            {reportLoading ? "Submitting..." : "Submit"}
                         </button>
                     </div>
                 )}

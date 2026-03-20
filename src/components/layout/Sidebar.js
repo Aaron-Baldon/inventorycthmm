@@ -75,6 +75,13 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 							onClose();
 						}}
 					/>
+					<MenuItem
+						label="Problem Reports"
+						onClick={() => {
+							onNavigate("problem_reports");
+							onClose();
+						}}
+					/>
 
 					<MenuItem
 					label="FAQ Manager"
