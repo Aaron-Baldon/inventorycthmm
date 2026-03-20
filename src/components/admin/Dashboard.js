@@ -21,6 +21,8 @@ import {
   createReservation,
 } from "../../helper/api";
 
+import { useToast } from "../../context/ToastContext";
+
 import { getUser } from "../services/authService";
 
 function formatTime12(timeStr) {
@@ -71,6 +73,8 @@ export default function Dashboard() {
   }, []);
 
   const user = getUser();
+  const toast = useToast();
+
   const [stats, setStats] = useState(null);
   const [reservations, setReservations] = useState([]);
 
@@ -193,7 +197,21 @@ export default function Dashboard() {
     try {
       await updateReservationStatus({ id, status });
       await refresh();
-    } catch (e) {}
+    } catch (e) {
+      const raw = String(e?.message || "");
+      const statusLower = String(status || "").toLowerCase();
+
+      if (statusLower === "approved" && raw.toLowerCase().includes("already ended")) {
+        toast.push({
+          type: "warning",
+          title: "Cannot approve",
+          description: "This time and date have already past so it can't be approved.",
+        });
+        return;
+      }
+
+      toast.push({ type: "error", title: "Update failed", description: raw || "Failed to update status." });
+    }
   };
 
   const getStatusColor = (status) => {

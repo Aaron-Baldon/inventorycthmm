@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { getUser, logout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 import {
     getBorrowRequests,
     getBorrowRequestItems,
@@ -9,6 +10,7 @@ import {
 } from "../../helper/api";
 
 export default function StudentHeader({ onMenuClick }) {
+
     const [showProfile, setShowProfile] = useState(false);
     const [activePanel, setActivePanel] = useState(null);
 
@@ -20,6 +22,8 @@ export default function StudentHeader({ onMenuClick }) {
     const [reportLoading, setReportLoading] = useState(false);
 
     const user = getUser();
+
+    const toast = useToast();
 
     const navigate = useNavigate();
 
@@ -91,11 +95,11 @@ export default function StudentHeader({ onMenuClick }) {
     const handleReportSubmit = async () => {
         const msg = String(reportMessage || "").trim();
         if (!user?.id) {
-            alert("Not logged in.");
+            toast.push({ type: "error", title: "Not logged in", description: "Please log in again." });
             return;
         }
         if (!msg) {
-            alert("Please describe the problem.");
+            toast.push({ type: "warning", title: "Missing message", description: "Please describe the problem." });
             return;
         }
 
@@ -103,10 +107,10 @@ export default function StudentHeader({ onMenuClick }) {
         try {
             await submitProblemReport({ student_id: user.id, message: msg });
             setReportMessage("");
-            alert("Report submitted.");
+            toast.push({ type: "success", title: "Report submitted", description: "Your report was sent to the admins." });
             setActivePanel(null);
         } catch (e) {
-            alert(e?.message || "Failed to submit report");
+            toast.push({ type: "error", title: "Submit failed", description: e?.message || "Failed to submit report" });
         } finally {
             setReportLoading(false);
         }

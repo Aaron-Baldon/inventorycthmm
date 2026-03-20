@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { login, register } from "../components/services/authService";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 
 const inputStyle = {
   width: "100%",
@@ -22,6 +23,8 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const toast = useToast();
+
   const [signUpRole, setSignUpRole] = useState("student");
   const [adminPasscode, setAdminPasscode] = useState("");
 
@@ -36,7 +39,7 @@ export default function LoginPage() {
       if (role === "admin") navigate("/admin", { replace: true });
       else navigate("/student", { replace: true });
     } catch (e) {
-      alert(e.message || "Invalid login");
+      toast.push({ type: "error", title: "Login failed", description: e.message || "Invalid login" });
     } finally {
       setLoading(false);
     }
@@ -46,22 +49,22 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (!fullName.trim()) {
-        alert("Full name is required.");
+        toast.push({ type: "warning", title: "Missing information", description: "Full name is required." });
         return;
       }
 
       if (!email.trim()) {
-        alert("Email is required.");
+        toast.push({ type: "warning", title: "Missing information", description: "Email is required." });
         return;
       }
 
       if (!idNumber.trim()) {
-        alert("ID Number is required.");
+        toast.push({ type: "warning", title: "Missing information", description: "ID Number is required." });
         return;
       }
 
       if (signUpRole === "admin" && !adminPasscode.trim()) {
-        alert("Admin passcode is required for admin signup.");
+        toast.push({ type: "warning", title: "Missing information", description: "Admin passcode is required for admin signup." });
         return;
       }
 
@@ -75,7 +78,7 @@ export default function LoginPage() {
       if (role === "admin") navigate("/admin", { replace: true });
       else navigate("/student", { replace: true });
     } catch (e) {
-      alert(e.message || "Sign up failed");
+      toast.push({ type: "error", title: "Sign up failed", description: e.message || "Sign up failed" });
     } finally {
       setLoading(false);
     }

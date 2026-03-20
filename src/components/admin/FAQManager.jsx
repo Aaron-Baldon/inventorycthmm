@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useToast } from "../../context/ToastContext";
 
 const FAQ_BASE = process.env.REACT_APP_CHATBOT_BASE_URL || "http://localhost:5001";
 const API = `${FAQ_BASE}/faqs`;
@@ -110,13 +111,14 @@ const buttonRow = {
 /* ================= COMPONENT ================= */
 
 export default function FAQManager() {
+	const toast = useToast();
 
-	const [faqs,setFaqs] = useState([]);
-	const [question,setQuestion] = useState("");
-	const [answer,setAnswer] = useState("");
+	const [faqs, setFaqs] = useState([]);
+	const [question, setQuestion] = useState("");
+	const [answer, setAnswer] = useState("");
 
-	const [showModal,setShowModal] = useState(false);
-	const [editingIndex,setEditingIndex] = useState(null);
+	const [showModal, setShowModal] = useState(false);
+	const [editingIndex, setEditingIndex] = useState(null);
 
 	const loadFaqs = async () => {
 		try {
@@ -127,29 +129,28 @@ export default function FAQManager() {
 		} catch (e) {
 			console.error("loadFaqs error:", e);
 			setFaqs([]);
-			alert(e.message || "Failed to load FAQs");
+			toast.push({ type: "error", title: "Load failed", description: e.message || "Failed to load FAQs" });
 		}
-
 	};
 
-	useEffect(()=>{
+	useEffect(() => {
 		loadFaqs();
-	},[]);
-
+	}, []);
 
 	const addFaq = async () => {
 		try {
-			const res = await fetch(API,{
-				method:"POST",
-				headers:{
-					"Content-Type":"application/json"
+			const res = await fetch(API, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
 				},
-				body:JSON.stringify({question,answer})
+				body: JSON.stringify({ question, answer })
 			});
 			if (!res.ok) throw new Error("Failed to add FAQ");
 		} catch (e) {
 			console.error("addFaq error:", e);
-			return alert(e.message || "Failed to add FAQ");
+			toast.push({ type: "error", title: "Add failed", description: e.message || "Failed to add FAQ" });
+			return;
 		}
 
 		setQuestion("");
@@ -157,22 +158,22 @@ export default function FAQManager() {
 		setShowModal(false);
 
 		loadFaqs();
-
 	};
 
 	const updateFaq = async () => {
 		try {
-			const res = await fetch(API+"/"+editingIndex,{
-				method:"PUT",
-				headers:{
-					"Content-Type":"application/json"
+			const res = await fetch(API + "/" + editingIndex, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json"
 				},
-				body:JSON.stringify({question,answer})
+				body: JSON.stringify({ question, answer })
 			});
 			if (!res.ok) throw new Error("Failed to update FAQ");
 		} catch (e) {
 			console.error("updateFaq error:", e);
-			return alert(e.message || "Failed to update FAQ");
+			toast.push({ type: "error", title: "Update failed", description: e.message || "Failed to update FAQ" });
+			return;
 		}
 
 		setEditingIndex(null);
@@ -181,25 +182,24 @@ export default function FAQManager() {
 		setShowModal(false);
 
 		loadFaqs();
-
 	};
 
 	const deleteFaq = async (index) => {
 		try {
-			const res = await fetch(API+"/"+index,{
-				method:"DELETE"
+			const res = await fetch(API + "/" + index, {
+				method: "DELETE"
 			});
 			if (!res.ok) throw new Error("Failed to delete FAQ");
 		} catch (e) {
 			console.error("deleteFaq error:", e);
-			return alert(e.message || "Failed to delete FAQ");
+			toast.push({ type: "error", title: "Delete failed", description: e.message || "Failed to delete FAQ" });
+			return;
 		}
 
 		loadFaqs();
-
 	};
 
-	const openEdit = (faq,index)=>{
+	const openEdit = (faq, index) => {
 		setQuestion(faq.question);
 		setAnswer(faq.answer);
 		setEditingIndex(index);

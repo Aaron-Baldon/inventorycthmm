@@ -196,7 +196,15 @@ export default function RoomCalendarPage() {
 
     } catch (e) {
 
-      console.error(e);
+      const raw = String(e?.message || "");
+      const statusLower = String(status || "").toLowerCase();
+
+      if (statusLower === "approved" && raw.toLowerCase().includes("already ended")) {
+        setMessage("This time and date have already past so it can't be approved.");
+        return;
+      }
+
+      setMessage(raw || "Failed to update status.");
 
     }
 

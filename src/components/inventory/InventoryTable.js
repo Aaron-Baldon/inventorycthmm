@@ -2,6 +2,7 @@ import { useState } from "react";
 import AddItemModal from "./AddItemModal";
 import * as XLSX from "xlsx";
 import { createItem, updateItem, deleteItem } from "../../helper/api";
+import { useToast } from "../../context/ToastContext";
 
 
 /* TABLE STYLES */
@@ -65,6 +66,7 @@ export default function InventoryTable({ items = [], setItems }) {
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [search, setSearch] = useState("");
 	const [selectedIds, setSelectedIds] = useState([]);
+	const toast = useToast();
 
 	/* CREATE / UPDATE */
 	const saveItem = async (data) => {
@@ -81,7 +83,7 @@ export default function InventoryTable({ items = [], setItems }) {
 			setEditingItem(null);
 		} catch (e) {
 			console.error("saveItem error:", e);
-			alert(e.message || "Failed to save item");
+			toast.push({ type: "error", title: "Save failed", description: e.message || "Failed to save item" });
 		}
 	};
 
@@ -99,7 +101,7 @@ export default function InventoryTable({ items = [], setItems }) {
 			setSelectedItem(null);
 		} catch (e) {
 			console.error("deleteItem error:", e);
-			alert(e.message || "Failed to delete item(s)");
+			toast.push({ type: "error", title: "Delete failed", description: e.message || "Failed to delete item(s)" });
 		}
 	};
 
@@ -168,17 +170,18 @@ const isSelected = (id) => selectedIds.includes(id);
 
 
 			if (importedItems.length === 0) {
-				alert("No new items imported (duplicates detected).");
+				toast.push({ type: "warning", title: "Nothing imported", description: "No new items imported (duplicates detected)." });
 				return;
 			}
 
 			Promise.all(importedItems.map((it) => createItem(it)))
 				.then((createdRows) => {
 					setItems([...createdRows, ...items]);
+					toast.push({ type: "success", title: "Import complete", description: `Imported ${createdRows.length} item(s).` });
 				})
 				.catch((e) => {
 					console.error("Import createItem error:", e);
-					alert(e.message || "Failed to import items");
+					toast.push({ type: "error", title: "Import failed", description: e.message || "Failed to import items" });
 				});
 
 		};
