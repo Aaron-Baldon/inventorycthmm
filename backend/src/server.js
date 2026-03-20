@@ -438,9 +438,34 @@ app.patch("/api/room-reservations/:id/status", async (req, res) => {
     const id = Number(req.params.id);
     const { status } = req.body;
 
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid reservation id" });
+    }
+
+    const statusLower = String(status || "").toLowerCase();
+
     const allowed = ["approved", "rejected", "cancelled", "pending"];
-    if (!allowed.includes(status)) {
+    if (!allowed.includes(statusLower)) {
       return res.status(400).json({ error: "Invalid status" });
+    }
+
+    if (statusLower === "approved") {
+      const expired = await pool.query(
+        `
+        SELECT 1
+        FROM public.room_reservations
+        WHERE id = $1
+          AND (reservation_date::timestamp + end_time) <= NOW()
+        LIMIT 1
+        `,
+        [id]
+      );
+
+      if (expired.rows.length > 0) {
+        return res.status(409).json({
+          error: "Cannot approve a reservation that has already ended",
+        });
+      }
     }
 
     const updated = await pool.query(
@@ -450,7 +475,7 @@ app.patch("/api/room-reservations/:id/status", async (req, res) => {
       WHERE id = $1
       RETURNING *
       `,
-      [id, status]
+      [id, statusLower]
     );
 
     if (updated.rows.length === 0) {
