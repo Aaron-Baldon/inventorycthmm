@@ -4,9 +4,9 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useEffect, useMemo, useState } from "react";
 import { getUser } from "../components/services/authService";
+import "react-calendar/dist/Calendar.css";
 import "../styles/calendar.css";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useTheme } from "../context/ThemeContext";
 import {
@@ -77,7 +77,7 @@ export default function RoomCalendarPage() {
         setRooms(data || []);
 
         if (Array.isArray(data)) {
-          setSelectedRooms(data.map(r => r.id)); // auto select all
+          setSelectedRooms(data.map(r => r.id));
         }
 
       } catch (e) {
@@ -225,7 +225,7 @@ export default function RoomCalendarPage() {
     if (!reservedBy)
       return setMessage("Login required.");
 
-    const roomId = selectedRooms[0]; // first checked room
+    const roomId = selectedRooms[0];
 
     try {
 
@@ -261,9 +261,12 @@ export default function RoomCalendarPage() {
 
   }, [dayReservations]);
 
+  const isDark = theme === "dark";
+  const textColor = isDark ? "#ffffff" : "#000000";
+
   return (
 
-    <div className={theme === "dark" ? "dark" : ""}>
+    <div className={isDark ? "dark" : ""}>
 
       <div style={{ padding: "0px 30px 10px 30px" }}>
 
@@ -387,23 +390,28 @@ export default function RoomCalendarPage() {
           {panelOpen && (
             <div
               style={{
-                background: theme === "dark" ? "#101214" : "#ffffff",
-                border:
-                  theme === "dark"
-                    ? "1px solid rgba(255,255,255,0.2)"
-                    : "1px solid rgba(0,0,0,0.1)",
+                background: isDark ? "#101214" : "#ffffff",
+                border: isDark
+                  ? "1px solid rgba(255,255,255,0.2)"
+                  : "1px solid rgba(0,0,0,0.1)",
                 borderRadius: 18,
                 padding: 16,
                 height: "fit-content",
                 maxHeight: "80vh",
                 overflowY: "auto",
+                color: textColor,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div>
-                  <div className="selectedDate">{selectedDate}</div>
+                  {/* FIXED: hardcoded text color */}
+                  <div style={{ fontWeight: 700, color: textColor }}>
+                    {selectedDate}
+                  </div>
 
-                  {isAdmin && <div>Pending: {pendingCount}</div>}
+                  {isAdmin && (
+                    <div style={{ color: textColor }}>Pending: {pendingCount}</div>
+                  )}
                 </div>
 
                 <button onClick={() => setPanelOpen(false)}>Close</button>
@@ -412,13 +420,13 @@ export default function RoomCalendarPage() {
               <hr />
 
               {loadingDay ? (
-                <div className="loadingText">Loading...</div>
+                <div style={{ color: textColor, fontWeight: 600 }}>Loading...</div>
               ) : (
                 dayReservations.map((r) => (
-                  <div key={r.id} style={{ marginBottom: 10 }}>
+                  <div key={r.id} style={{ marginBottom: 10, color: textColor }}>
                     {formatTime12(r.start_time)} - {formatTime12(r.end_time)}
 
-                    <div>Status: {r.status}</div>
+                    <div style={{ color: textColor }}>Status: {r.status}</div>
 
                     {isAdmin && r.status === "pending" && (
                       <div style={{ display: "flex", gap: 8 }}>
@@ -439,12 +447,7 @@ export default function RoomCalendarPage() {
                 <button onClick={submitReservation}>Reserve</button>
 
                 {message && (
-                  <div
-                    style={{
-                      color: theme === "dark" ? "#010101" : "#010101",
-                      fontWeight: "600",
-                    }}
-                  >
+                  <div style={{ color: textColor, fontWeight: "600" }}>
                     {message}
                   </div>
                 )}
