@@ -60,7 +60,17 @@ export default function BorrowTable() {
 		margin: "8% auto",
 		padding: "20px",
 		borderRadius: "8px",
-		position: "relative" // needed for X button
+		position: "relative"
+	};
+
+	/* FIXED: input style always black text */
+	const inputStyle = {
+		padding: "8px 10px",
+		borderRadius: "6px",
+		border: "1px solid #000",
+		background: "#ffffff",
+		color: "#000000",
+		fontSize: "14px",
 	};
 
 	/* ===== LOAD DATA ===== */
@@ -146,9 +156,24 @@ export default function BorrowTable() {
 		<div>
 			{/* INPUTS */}
 			<div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
-				<input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-				<input placeholder="Lab No" value={labNo} onChange={e => setLabNo(e.target.value)} />
-				<input placeholder="Control Number" value={controlNo} onChange={e => setControlNo(e.target.value)} />
+				<input
+					placeholder="Name"
+					value={name}
+					onChange={e => setName(e.target.value)}
+					style={inputStyle}
+				/>
+				<input
+					placeholder="Lab No"
+					value={labNo}
+					onChange={e => setLabNo(e.target.value)}
+					style={inputStyle}
+				/>
+				<input
+					placeholder="Control Number"
+					value={controlNo}
+					onChange={e => setControlNo(e.target.value)}
+					style={inputStyle}
+				/>
 			</div>
 
 			{/* BUTTONS */}
@@ -200,7 +225,7 @@ export default function BorrowTable() {
 										type="number"
 										value={item.qty}
 										onChange={(e) => updateQty(item.id, Number(e.target.value))}
-										style={{ width: "60px", border: "1px solid #000" }}
+										style={{ width: "60px", border: "1px solid #000", color: "#000000", background: "#ffffff" }}
 									/>
 								</td>
 							</tr>
@@ -213,8 +238,8 @@ export default function BorrowTable() {
 			{showModal && (
 				<div style={backdrop} onClick={() => setShowModal(false)}>
 					<div style={modal} onClick={(e) => e.stopPropagation()}>
-						
-						{/* ❌ CLOSE BUTTON */}
+
+						{/* CLOSE BUTTON */}
 						<button
 							onClick={() => setShowModal(false)}
 							style={{
@@ -237,7 +262,7 @@ export default function BorrowTable() {
 							value={search}
 							onChange={e => setSearch(e.target.value)}
 							placeholder="Search..."
-							style={{ width: "100%", marginBottom: "10px" }}
+							style={{ ...inputStyle, width: "100%", marginBottom: "10px", boxSizing: "border-box" }}
 						/>
 
 						<table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -266,3 +291,4 @@ export default function BorrowTable() {
 		</div>
 	);
 }
+

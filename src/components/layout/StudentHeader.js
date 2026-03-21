@@ -121,7 +121,7 @@ export default function StudentHeader({ onMenuClick }) {
     const labelColor = themeName === "dark" ? "#aaa" : "#555";
     const fieldBg = themeName === "dark" ? "#333" : "#f5f5f5";
     const textareaBg = themeName === "dark" ? "#444" : "#fff";
-    const buttonBg = themeName === "dark" ? "#1976d2" : "#1976d2"; // same color, works in both
+    const buttonBg = themeName === "dark" ? "#1976d2" : "#1976d2";
 
     return (
         <>
@@ -130,7 +130,7 @@ export default function StudentHeader({ onMenuClick }) {
                 style={{
                     height: "60px",
                     background: theme.header,
-                    color: theme.text,
+                    color: theme.headerText,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -150,14 +150,14 @@ export default function StudentHeader({ onMenuClick }) {
                             fontSize: "22px",
                             background: "transparent",
                             border: "none",
-                            color: theme.text,
+                            color: theme.headerText,
                             cursor: "pointer",
                             marginRight: "15px"
                         }}
                     >
                         ☰
                     </button>
-                    <b>Student Borrowing Portal</b>
+                    <b style={{ color: theme.headerText }}>Student Borrowing Portal</b>
                 </div>
 
                 {/* AVATAR */}

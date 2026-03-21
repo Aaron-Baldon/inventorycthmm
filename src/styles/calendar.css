@@ -28,7 +28,7 @@ html, body, #root {
   font-weight: 800;
 }
 
-/* “More” link (when many events) */
+/* "More" link (when many events) */
 .fc .fc-daygrid-more-link {
   color: rgba(255, 255, 255, 0.85);
   font-weight: 700;
@@ -74,17 +74,6 @@ html, body, #root {
 .fc .fc-popover .fc-event-title,
 .fc .fc-popover .fc-event-time {
   color: rgba(255, 255, 255, 0.95) !important;
-}
-
-.reserved-day {
-  background: rgba(46, 204, 113, 0.25) !important;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.reserved-day:hover {
-  background: rgba(46, 204, 113, 0.45) !important;
-  cursor: pointer;
 }
 
 .modalOverlay{
@@ -145,6 +134,16 @@ html, body, #root {
 	border-radius: 8px;
 	padding: 8px 4px;
 	transition: 0.15s;
+  position: relative;
+}
+
+/* FORCE ALL BUTTON TEXT BLACK IN LIGHT MODE */
+.react-calendar button {
+  color: #000000 !important;
+}
+
+.dark .react-calendar button {
+  color: #ffffff !important;
 }
 
 /* NORMAL HOVER */
@@ -182,13 +181,8 @@ html, body, #root {
 /* NAVIGATION (MONTH SWITCH) */
 .react-calendar__navigation button {
 	background: transparent;
-	color: black;
 	border-radius: 8px;
 	font-weight: 700;
-}
-
-.dark .react-calendar__navigation button {
-  color: white;
 }
 
 .react-calendar__navigation button:hover {
@@ -200,9 +194,16 @@ html, body, #root {
 	border: none;
 }
 
-.react-calendar__tile {
-  position: relative;
+/* ================= SELECTED DATE → LIGHT RED ================= */
+
+.react-calendar__tile--active,
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+  background: #ffcccc !important;
+  color: #cc0000 !important;
+  border-radius: 8px;
 }
+
 /* ================= SIDEBAR ================= */
 
 /* LIGHT MODE */
@@ -238,7 +239,7 @@ html, body, #root {
 
 /* ================= EVENTS ================= */
 
-/* 🔥 LIGHT MODE (BLUE) */
+/* LIGHT MODE (BLUE) */
 .fc .fc-event {
   border-radius: 12px !important;
   border: 1px solid #2563eb !important;
@@ -246,13 +247,13 @@ html, body, #root {
   padding: 3px 6px;
 }
 
-/* 🔥 DARK MODE (DARK BLUE) */
+/* DARK MODE (DARK BLUE) */
 .dark .fc .fc-event {
   border: 1px solid #60a5fa !important;
   background: #1d4ed8 !important;
 }
 
-/* 🔥 TEXT CONTROL (IMPORTANT FIX) */
+/* TEXT CONTROL */
 .fc .fc-event-main,
 .fc .fc-event-title,
 .fc .fc-event-time {
@@ -286,7 +287,7 @@ input[type="time"]::-webkit-datetime-edit {
   color: white !important;
 }
 
-/* 🔥 LOADING FIX */
+/* LOADING FIX */
 .loadingText {
   color: black !important;
   font-weight: 600;
