@@ -4,7 +4,6 @@ import StudentSidebar from "../components/layout/StudentSidebar";
 import BorrowTable from "../components/student/BorrowTable";
 import RoomCalendarPage from "./RoomCalendarPage";
 import { useTheme } from "../context/ThemeContext";
-import { themes } from "../theme/studentTheme";
 import ChatbotWidget from "../components/student/ChatbotWidget";
 
 export default function StudentPage() {
@@ -12,7 +11,6 @@ export default function StudentPage() {
   const [page, setPage] = useState("home");
   const [notification, setNotification] = useState("");
   const { theme } = useTheme();
-  const [showInbox, setShowInbox] = useState(false);
 
   useEffect(() => {
     document.title = "Student | Inventory System";
@@ -27,13 +25,13 @@ export default function StudentPage() {
 
   return (
     <div
-    style={{
-      minHeight: "100vh",
-      background: theme.bg,
-      color: theme.text,
-      position: "relative"
-    }}
-  >      
+      style={{
+        minHeight: "100vh",
+        background: theme.bg,
+        color: theme.text,
+        position: "relative"
+      }}
+    >      
   
   <StudentHeader onMenuClick={() => setSidebarOpen(true)} />
 
@@ -47,32 +45,6 @@ export default function StudentPage() {
         zIndex: 1000,
       }}>
         <div style={{ position: "relative" }}>
-
-          {showInbox && (
-            <div style={{
-              position: "absolute",
-              top: "100%",
-              right: 0,
-              background: "#1e293b",
-              borderRadius: "12px",
-              width: "300px",
-              maxHeight: "400px",
-              overflowY: "auto",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
-              marginTop: "10px",
-            }}>
-              <div style={{
-                padding: "15px",
-                borderBottom: "1px solid #334155",
-                fontWeight: "600"
-              }}>
-                Announcements
-              </div>
-              <div style={{ padding: "10px", color: "#cbd5e1" }}>
-                <p>No new announcements.</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

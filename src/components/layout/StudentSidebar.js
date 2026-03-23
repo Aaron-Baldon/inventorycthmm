@@ -1,6 +1,3 @@
-import { useTheme } from "../../context/ThemeContext";
-import { themes } from "../../theme/studentTheme";
-
 export default function StudentSidebar({ open, onClose, onNavigate }) {
 	return (
 		<>

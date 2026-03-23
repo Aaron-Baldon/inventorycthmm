@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "../../context/ToastContext";
 
 const FAQ_BASE = process.env.REACT_APP_CHATBOT_BASE_URL || "http://localhost:5001";
@@ -120,7 +120,7 @@ export default function FAQManager() {
 	const [showModal, setShowModal] = useState(false);
 	const [editingIndex, setEditingIndex] = useState(null);
 
-	const loadFaqs = async () => {
+	const loadFaqs = useCallback(async () => {
 		try {
 			const res = await fetch(API);
 			if (!res.ok) throw new Error("Failed to load FAQs");
@@ -131,11 +131,11 @@ export default function FAQManager() {
 			setFaqs([]);
 			toast.push({ type: "error", title: "Load failed", description: e.message || "Failed to load FAQs" });
 		}
-	};
+	}, [toast]);
 
 	useEffect(() => {
 		loadFaqs();
-	}, []);
+	}, [loadFaqs]);
 
 	const addFaq = async () => {
 		try {

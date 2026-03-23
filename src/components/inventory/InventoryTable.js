@@ -114,9 +114,6 @@ export default function InventoryTable({ items = [], setItems }) {
 		);
 	};
 
-const isSelected = (id) => selectedIds.includes(id);
-
-
 	/* SEARCH FILTER */
 	const filteredItems = items.filter(i => {
 		const s = search.toLowerCase();
