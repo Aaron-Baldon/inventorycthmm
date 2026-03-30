@@ -57,6 +57,7 @@ export default function BorrowTable() {
 		background: theme.card,
 		color: theme.text,
 		width: "520px",
+		maxWidth: "92vw",
 		margin: "8% auto",
 		padding: "20px",
 		borderRadius: "8px",
@@ -71,6 +72,7 @@ export default function BorrowTable() {
 		background: "#ffffff",
 		color: "#000000",
 		fontSize: "14px",
+		boxSizing: "border-box",
 	};
 
 	/* ===== LOAD DATA ===== */
@@ -155,32 +157,32 @@ export default function BorrowTable() {
 	return (
 		<div>
 			{/* INPUTS */}
-			<div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+			<div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "15px" }}>
 				<input
 					placeholder="Name"
 					value={name}
 					onChange={e => setName(e.target.value)}
-					style={inputStyle}
+					style={{ ...inputStyle, flex: "1 1 160px" }}
 				/>
 				<input
 					placeholder="Lab No"
 					value={labNo}
 					onChange={e => setLabNo(e.target.value)}
-					style={inputStyle}
+					style={{ ...inputStyle, flex: "1 1 160px" }}
 				/>
 				<input
 					placeholder="Control Number"
 					value={controlNo}
 					onChange={e => setControlNo(e.target.value)}
-					style={inputStyle}
+					style={{ ...inputStyle, flex: "1 1 160px" }}
 				/>
 			</div>
 
 			{/* BUTTONS */}
-			<div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
+			<div style={{ display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap", marginBottom: "15px" }}>
 				<button style={btnPrimary} onClick={() => setShowModal(true)}>+ Add Item</button>
 
-				<div style={{ display: "flex", gap: "10px" }}>
+				<div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
 					<button style={btnPrimary} onClick={() => PrintBorrowPDF({ name, labNo, controlNo, items })}>
 						Print
 					</button>
@@ -193,15 +195,17 @@ export default function BorrowTable() {
 			{message && <div style={{ marginBottom: 10 }}>{message}</div>}
 
 			{/* TABLE */}
-			<table
-				style={{
-					width: "100%",
-					borderCollapse: "collapse",
-					background: theme.card,
-					color: theme.text,
-					border: themeName === "dark" ? "2px solid #aaa" : "2px solid #000"
-				}}
-			>
+			<div style={{ width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+				<table
+					style={{
+						width: "100%",
+						minWidth: "420px",
+						borderCollapse: "collapse",
+						background: theme.card,
+						color: theme.text,
+						border: themeName === "dark" ? "2px solid #aaa" : "2px solid #000"
+					}}
+				>
 				<thead>
 					<tr>
 						<th style={th}>No</th>
@@ -232,7 +236,8 @@ export default function BorrowTable() {
 						))
 					)}
 				</tbody>
-			</table>
+				</table>
+			</div>
 
 			{/* MODAL */}
 			{showModal && (

@@ -64,6 +64,7 @@ const backdrop = {
 
 const modal = {
 	background: "#0b0b0b",
+	maxWidth: "92vw",
 	width: "520px",
 	padding: "26px",
 	borderRadius: "10px",
@@ -225,80 +226,82 @@ export default function FAQManager() {
 		</div>
 
 		{/* TABLE */}
+		<div style={{ width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+			<table
+				style={{
+					width:"100%",
+					minWidth: "720px",
+					borderCollapse:"collapse",
+					background:"#fff"
+				}}
+			>
 
-		<table
-			style={{
-				width:"100%",
-				borderCollapse:"collapse",
-				background:"#fff"
-			}}
-		>
-
-		<thead>
-		<tr>
-			<th style={{...th,width:"35%"}}>Question</th>
-			<th style={{...th,width:"45%"}}>Answer</th>
-			<th style={{...th,width:"20%"}}>Action</th>
-		</tr>
-		</thead>
-
-		<tbody>
-
-		{faqs.length === 0 ? (
-
+			<thead>
 			<tr>
-				<td colSpan="3" style={{padding:"18px",textAlign:"center"}}>
-					No FAQs yet
-				</td>
+				<th style={{...th,width:"35%"}}>Question</th>
+				<th style={{...th,width:"45%"}}>Answer</th>
+				<th style={{...th,width:"20%"}}>Action</th>
 			</tr>
+			</thead>
 
-		) : (
+			<tbody>
 
-			faqs.map((faq,index)=>(
+			{faqs.length === 0 ? (
 
-			<tr key={index} style={{
-				background:index % 2 === 0 ? "#ffffff" : "#eef3fb"
-			}}>
+				<tr>
+					<td colSpan="3" style={{padding:"18px",textAlign:"center"}}>
+						No FAQs yet
+					</td>
+				</tr>
 
-				<td style={{...td,textAlign:"left"}}>
-					{faq.question}
-				</td>
+			) : (
 
-				<td style={{...td,textAlign:"left"}}>
-					{faq.answer}
-				</td>
+				faqs.map((faq,index)=>(
 
-				<td style={td}>
+				<tr key={index} style={{
+					background:index % 2 === 0 ? "#ffffff" : "#eef3fb"
+				}}>
 
-					<div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
+					<td style={{...td,textAlign:"left"}}>
+						{faq.question}
+					</td>
 
-						<button
-							style={btnEdit}
-							onClick={()=>openEdit(faq,index)}
-						>
-							Edit
-						</button>
+					<td style={{...td,textAlign:"left"}}>
+						{faq.answer}
+					</td>
 
-						<button
-							style={btnDelete}
-							onClick={()=>deleteFaq(index)}
-						>
-							Delete
-						</button>
+					<td style={td}>
 
-					</div>
+						<div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
 
-				</td>
+							<button
+								style={btnEdit}
+								onClick={()=>openEdit(faq,index)}
+							>
+								Edit
+							</button>
 
-			</tr>
+							<button
+								style={btnDelete}
+								onClick={()=>deleteFaq(index)}
+							>
+								Delete
+							</button>
 
-			))
+						</div>
 
-		)}
+					</td>
 
-		</tbody>
+				</tr>
 
-		</table>
+				))
+
+			)}
+
+			</tbody>
+
+			</table>
+		</div>
 
 
 		{/* MODAL */}

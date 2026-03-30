@@ -9,7 +9,7 @@
 }
 
 .modal {
-	width: 520px;
+	width: min(520px, 92vw);
 	max-height: 85vh;
 	background: #111;
 	color: white;
@@ -102,6 +102,17 @@
 	justify-content: flex-end;
 	gap: 10px;
 	border-top: 1px solid #333;
+}
+
+@media (max-width: 480px) {
+	.modal-footer {
+		justify-content: stretch;
+		flex-wrap: wrap;
+	}
+
+	.modal-footer .btn {
+		flex: 1 1 120px;
+	}
 }
 
 .btn {
