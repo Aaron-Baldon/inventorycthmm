@@ -41,7 +41,16 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", background: theme.bg, color: theme.text }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: theme.bg,
+        color: theme.text,
+        width: "100%",
+        maxWidth: "100vw",
+        overflowX: "hidden",
+      }}
+    >
       <Header onMenuClick={() => setSidebarOpen(true)} showThemeToggle />
 
       <Sidebar
@@ -53,7 +62,7 @@ export default function AdminPage() {
         }}
       />
 
-      <div style={{ padding: "20px" }}>
+      <div style={{ padding: "20px", width: "100%", maxWidth: "100vw", overflowX: "hidden" }}>
         {page === "dashboard" && <Dashboard items={items} setItems={setItems} />}
 
         {page === "inventory" && (
