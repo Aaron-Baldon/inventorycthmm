@@ -33,7 +33,8 @@
   "scripts": {
     "start": "concurrently \"npm run react\" \"npm run python\"",
     "react": "react-scripts start",
-    "python": "cd server && python server.py"
+    "python": "cd server && python server.py",
+    "build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": [

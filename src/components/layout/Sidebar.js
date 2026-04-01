@@ -4,7 +4,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 export default function Sidebar({ open, onClose, onNavigate }) {
 	const navigate = useNavigate();
-	const { theme, themeName } = useTheme();
+	const { theme } = useTheme();
 	return (
 		<>
 			{open && (
