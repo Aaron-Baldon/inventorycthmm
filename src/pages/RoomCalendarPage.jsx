@@ -65,6 +65,16 @@ export default function RoomCalendarPage() {
   const [endTime, setEndTime] = useState("11:00");
   const [message, setMessage] = useState("");
 
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   // LOAD ROOMS
   useEffect(() => {
 
@@ -268,16 +278,19 @@ export default function RoomCalendarPage() {
 
     <div className={isDark ? "dark" : ""}>
 
-      <div style={{ padding: "0px 30px 10px 30px" }}>
+      <div style={{ padding: isMobile ? "0px 12px 10px 12px" : "0px 30px 10px 30px" }}>
 
         <h2>Lab Room Reservations</h2>
 
         <div
+          className="calendarLayout"
           style={{
             display: "grid",
-            gridTemplateColumns: panelOpen ? "260px minmax(0,1fr) 320px" : "260px minmax(0,1fr)",
+            gridTemplateColumns: isMobile
+              ? "minmax(0,1fr)"
+              : (panelOpen ? "260px minmax(0,1fr) 320px" : "260px minmax(0,1fr)"),
             gap: 16,
-            overflowX: "auto"
+            overflowX: isMobile ? "hidden" : "auto"
           }}
         >
 
@@ -356,6 +369,7 @@ export default function RoomCalendarPage() {
               background: theme.card,
               color: theme.text,
               marginTop: "1px",
+              minHeight: isMobile ? "70vh" : undefined,
             }}
           >
             <FullCalendar
@@ -389,6 +403,7 @@ export default function RoomCalendarPage() {
           {/* SIDE PANEL */}
           {panelOpen && (
             <div
+              className="calendarSidePanel"
               style={{
                 background: isDark ? "#101214" : "#ffffff",
                 border: isDark
@@ -397,7 +412,7 @@ export default function RoomCalendarPage() {
                 borderRadius: 18,
                 padding: 16,
                 height: "fit-content",
-                maxHeight: "80vh",
+                maxHeight: isMobile ? "none" : "80vh",
                 overflowY: "auto",
                 color: textColor,
               }}
