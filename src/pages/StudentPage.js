@@ -33,7 +33,11 @@ export default function StudentPage() {
         minHeight: "100vh",
         background: theme.bg,
         color: theme.text,
-        position: "relative"
+        position: "relative",
+        width: "100%",
+        maxWidth: "100vw",
+        overflowX: "hidden",
+        touchAction: "pan-y"
       }}
     >      
   
@@ -78,7 +82,7 @@ export default function StudentPage() {
         </div>
       )}
 
-      <div style={{ padding: "30px", paddingTop: "90px" }}>
+      <div style={{ padding: "30px", paddingTop: "90px", maxWidth: "100vw", overflowX: "hidden" }}>
 
         {page === "home" && (
           <div>
