@@ -39,6 +39,66 @@ html, body, #root {
   padding: 2px;
 }
 
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.05rem;
+    line-height: 1.2;
+    text-align: center;
+    width: 100%;
+  }
+
+  .fc .fc-toolbar-chunk {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .fc .fc-button {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.78rem;
+  }
+
+  .fc .fc-timegrid-slot-label,
+  .fc .fc-col-header-cell-cushion,
+  .fc .fc-daygrid-day-number {
+    font-size: 0.78rem;
+  }
+
+  .fc .fc-timegrid-slot-label-frame {
+    padding: 0 2px;
+  }
+
+  .fc .fc-timegrid-axis-cushion,
+  .fc .fc-timegrid-slot-label-cushion {
+    padding: 0 2px;
+  }
+
+  .fc .fc-event {
+    padding: 1px 3px;
+  }
+
+  .fc .fc-event-title,
+  .fc .fc-event-time {
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+
+  .fc .fc-event-title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+}
+
 /* Popover (e.g. clicking "+ more") */
 .fc .fc-popover {
   background: #101214 !important;
