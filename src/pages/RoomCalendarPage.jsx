@@ -396,12 +396,14 @@ export default function RoomCalendarPage() {
               }}
               dateClick={(arg) => {
                 setSelectedDate(arg.dateStr);
+				setPanelOpen(true);
+				loadDayReservations(arg.dateStr);
               }}
             />
           </div>
 
           {/* SIDE PANEL */}
-          {panelOpen && (
+          {panelOpen && !isMobile && (
             <div
               className="calendarSidePanel"
               style={{
@@ -469,6 +471,96 @@ export default function RoomCalendarPage() {
               </div>
             </div>
           )}
+
+		  {/* MOBILE POPUP PANEL */}
+		  {panelOpen && isMobile && (
+			  <div
+				role="dialog"
+				aria-modal="true"
+				style={{
+					position: "fixed",
+					inset: 0,
+					background: "rgba(0,0,0,0.55)",
+					zIndex: 1000,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					padding: 12,
+				}}
+				onClick={() => setPanelOpen(false)}
+			  >
+				<div
+					className="calendarSidePanel"
+					style={{
+						background: isDark ? "#101214" : "#ffffff",
+						border: isDark
+							? "1px solid rgba(255,255,255,0.2)"
+							: "1px solid rgba(0,0,0,0.1)",
+						borderRadius: 18,
+						padding: 16,
+						width: "100%",
+						maxWidth: 520,
+						maxHeight: "86vh",
+						overflowY: "auto",
+						color: textColor,
+						boxShadow: isDark
+							? "0 14px 40px rgba(0,0,0,0.55)"
+							: "0 14px 40px rgba(0,0,0,0.20)",
+					}}
+					onClick={(e) => e.stopPropagation()}
+				>
+					<div style={{ display: "flex", justifyContent: "space-between" }}>
+						<div>
+							<div style={{ fontWeight: 700, color: textColor }}>
+								{selectedDate}
+							</div>
+
+							{isAdmin && (
+								<div style={{ color: textColor }}>Pending: {pendingCount}</div>
+							)}
+						</div>
+
+						<button onClick={() => setPanelOpen(false)}>Close</button>
+					</div>
+
+					<hr />
+
+					{loadingDay ? (
+						<div style={{ color: textColor, fontWeight: 600 }}>Loading...</div>
+					) : (
+						dayReservations.map((r) => (
+							<div key={r.id} style={{ marginBottom: 10, color: textColor }}>
+								{formatTime12(r.start_time)} - {formatTime12(r.end_time)}
+
+								<div style={{ color: textColor }}>Status: {r.status}</div>
+
+								{isAdmin && r.status === "pending" && (
+									<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+										<button onClick={() => handleSetStatus(r.id, "approved")}>Approve</button>
+										<button onClick={() => handleSetStatus(r.id, "rejected")}>Reject</button>
+									</div>
+								)}
+							</div>
+						))
+					)}
+
+					<hr />
+
+					<div>
+						<input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+						<input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+
+						<button onClick={submitReservation}>Reserve</button>
+
+						{message && (
+							<div style={{ color: textColor, fontWeight: "600" }}>
+								{message}
+							</div>
+						)}
+					</div>
+				</div>
+			  </div>
+		  )}
         </div>
       </div>
     </div>
