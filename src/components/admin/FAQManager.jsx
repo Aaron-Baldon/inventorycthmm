@@ -64,7 +64,6 @@ const backdrop = {
 };
 
 const modal = {
-	background: "#0b0b0b",
 	maxWidth: "92vw",
 	width: "520px",
 	padding: "26px",
@@ -86,8 +85,6 @@ const input = {
 	borderRadius: "6px",
 	border: "1px solid #6c757d",
 	fontSize: "14px",
-	background: "#3a3a3a",
-	color: "white",
 	boxSizing: "border-box"
 };
 
@@ -97,8 +94,6 @@ const textarea = {
 	borderRadius: "6px",
 	border: "1px solid #6c757d",
 	fontSize: "14px",
-	background: "#3a3a3a",
-	color: "white",
 	boxSizing: "border-box",
 	height: "120px"
 };
@@ -116,6 +111,32 @@ export default function FAQManager() {
 	const toast = useToast();
 	const { theme, themeName } = useTheme();
 	const isDark = themeName === "dark";
+
+	const modalTheme = {
+		...modal,
+		background: theme.card,
+		color: theme.text,
+		border: `1px solid ${theme.border}`,
+	};
+
+	const labelTheme = {
+		...label,
+		color: theme.text,
+	};
+
+	const inputTheme = {
+		...input,
+		background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+		color: theme.text,
+		border: `1px solid ${theme.border}`,
+	};
+
+	const textareaTheme = {
+		...textarea,
+		background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+		color: theme.text,
+		border: `1px solid ${theme.border}`,
+	};
 
 	const [faqs, setFaqs] = useState([]);
 	const [question, setQuestion] = useState("");
@@ -316,20 +337,20 @@ export default function FAQManager() {
 
 			<div style={backdrop}>
 
-				<div style={modal}>
+				<div style={modalTheme}>
 
 					<h3>{editingIndex === null ? "Add FAQ" : "Edit FAQ"}</h3>
 
-                        <label style={label}>Question</label>
+                        <label style={labelTheme}>Question</label>
                         <input
-                            style={input}
+                            style={inputTheme}
                             value={question}
                             onChange={(e)=>setQuestion(e.target.value)}
                         />
 
-                        <label style={label}>Answer</label>
+						<label style={labelTheme}>Answer</label>
                         <textarea
-                            style={textarea}
+							style={textareaTheme}
                             value={answer}
                             onChange={(e)=>setAnswer(e.target.value)}
                         />

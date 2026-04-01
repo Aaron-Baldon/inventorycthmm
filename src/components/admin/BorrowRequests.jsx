@@ -81,6 +81,15 @@ export default function BorrowRequests({ onInventoryChanged }) {
   const user = getUser();
 	const { theme, themeName } = useTheme();
 	const isDark = themeName === "dark";
+	const [isMobile, setIsMobile] = useState(
+		typeof window !== "undefined" ? window.innerWidth <= 768 : false
+	);
+
+	useEffect(() => {
+		const onResize = () => setIsMobile(window.innerWidth <= 768);
+		window.addEventListener("resize", onResize);
+		return () => window.removeEventListener("resize", onResize);
+	}, []);
 
 	const tdTheme = useMemo(() => {
 		return {
@@ -150,6 +159,12 @@ export default function BorrowRequests({ onInventoryChanged }) {
     setConditionNotes("");
     await loadItemsForRequest(reqRow.id);
   };
+
+	const closeSelected = () => {
+		setSelectedRequest(null);
+		setSelectedItems([]);
+		setConditionNotes("");
+	};
 
   const handleSetStatus = async (reqId, status) => {
     setMessage("");
@@ -242,8 +257,10 @@ export default function BorrowRequests({ onInventoryChanged }) {
             style={{
               padding: "8px 10px",
               borderRadius: 8,
-              border: "1px solid #dadce0",
+              border: `1px solid ${theme.border}`,
               fontWeight: 600,
+			  background: theme.card,
+			  color: theme.text,
             }}
           >
             <option value="all">All</option>
@@ -253,7 +270,11 @@ export default function BorrowRequests({ onInventoryChanged }) {
             <option value="returned">Returned</option>
           </select>
 
-          <button style={btn} onClick={loadRequests} disabled={loading}>
+          <button
+			style={{ ...btn, background: theme.card, color: theme.text, border: `1px solid ${theme.border}` }}
+			onClick={loadRequests}
+			disabled={loading}
+		  >
             {loading ? "Loading…" : "Refresh"}
           </button>
         </div>
@@ -266,7 +287,7 @@ export default function BorrowRequests({ onInventoryChanged }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: selectedRequest ? "1fr 420px" : "1fr",
+		  gridTemplateColumns: selectedRequest && !isMobile ? "1fr 420px" : "1fr",
           gap: 14,
           alignItems: "start",
         }}
@@ -323,7 +344,8 @@ export default function BorrowRequests({ onInventoryChanged }) {
         </table>
 		</div>
 
-        {selectedRequest && (
+		{/* Desktop-only right-side details panel */}
+        {selectedRequest && !isMobile && (
           <div
             style={{
               border: `1px solid ${theme.border}`,
@@ -349,11 +371,7 @@ export default function BorrowRequests({ onInventoryChanged }) {
 
               <button
                 style={btn}
-                onClick={() => {
-                  setSelectedRequest(null);
-                  setSelectedItems([]);
-                  setConditionNotes("");
-                }}
+				onClick={closeSelected}
               >
                 Close
               </button>
@@ -457,6 +475,158 @@ export default function BorrowRequests({ onInventoryChanged }) {
           </div>
         )}
       </div>
+
+		{/* Mobile-only modal details panel */}
+		{selectedRequest && isMobile && (
+			<div
+				role="dialog"
+				aria-modal="true"
+				style={{
+					position: "fixed",
+					inset: 0,
+					background: "rgba(0,0,0,0.55)",
+					zIndex: 1000,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					padding: 12,
+				}}
+				onClick={closeSelected}
+			>
+				<div
+					style={{
+						width: "100%",
+						maxWidth: 520,
+						maxHeight: "86vh",
+						overflow: "hidden",
+						borderRadius: 14,
+						background: theme.card,
+						color: theme.text,
+						border: `1px solid ${theme.border}`,
+						boxShadow: isDark
+							? "0 14px 40px rgba(0,0,0,0.55)"
+							: "0 14px 40px rgba(0,0,0,0.20)",
+						display: "flex",
+						flexDirection: "column",
+					}}
+					onClick={(e) => e.stopPropagation()}
+				>
+					<div
+						style={{
+							padding: 14,
+							display: "flex",
+							justifyContent: "space-between",
+							gap: 10,
+							borderBottom: `1px solid ${theme.border}`,
+						}}
+					>
+						<div>
+							<div style={{ fontWeight: 900, fontSize: 16 }}>Request #{selectedRequest.id}</div>
+							<div style={{ opacity: 0.85, marginTop: 2, fontSize: 13 }}>
+								Student: <span style={{ fontWeight: 800 }}>{selectedRequest.student_school_id || selectedRequest.student_id}</span>
+							</div>
+							<div style={{ opacity: 0.85, marginTop: 2, fontSize: 13 }}>
+								Status: <span style={{ fontWeight: 800 }}>{selectedRequest.status}</span>
+							</div>
+						</div>
+						<button style={btn} onClick={closeSelected}>Close</button>
+					</div>
+
+					<div style={{ padding: 14, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+						<div style={{ fontWeight: 900, marginBottom: 10 }}>Items</div>
+
+						{loadingItems ? (
+							<div style={{ opacity: 0.8 }}>Loading…</div>
+						) : selectedItems.length === 0 ? (
+							<div style={{ opacity: 0.8 }}>No items</div>
+						) : (
+							<div style={{ display: "grid", gap: 8 }}>
+								{selectedItems.map((it) => (
+									<div
+										key={it.id}
+										style={{
+											padding: 10,
+											borderRadius: 10,
+											border: `1px solid ${theme.border}`,
+											background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+										}}
+									>
+										<div style={{ fontWeight: 900 }}>{it.item_name}</div>
+										<div style={{ opacity: 0.8, marginTop: 2, fontSize: 13 }}>
+											Code: <span style={{ fontWeight: 700 }}>{it.item_code}</span>
+											{it.category ? (
+												<>
+													{" "}
+													• Category: <span style={{ fontWeight: 700 }}>{it.category}</span>
+												</>
+											) : null}
+										</div>
+										<div style={{ marginTop: 6, fontWeight: 800 }}>Qty: {it.quantity}</div>
+									</div>
+								))}
+							</div>
+						)}
+
+						{String(selectedRequest.status || "").toLowerCase() === "approved" && (
+							<div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+								<div style={{ display: "grid", gap: 6 }}>
+									<label style={{ opacity: 0.85, fontWeight: 700 }}>Condition notes (optional)</label>
+									<textarea
+										value={conditionNotes}
+										onChange={(e) => setConditionNotes(e.target.value)}
+										rows={3}
+										style={{
+											width: "100%",
+											borderRadius: 8,
+											border: `1px solid ${theme.border}`,
+											padding: 10,
+											resize: "vertical",
+											fontFamily: "inherit",
+											background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+											color: theme.text,
+										}}
+									/>
+								</div>
+							</div>
+						)}
+					</div>
+
+					<div
+						style={{
+							padding: 14,
+							display: "flex",
+							gap: 8,
+							borderTop: `1px solid ${theme.border}`,
+							flexDirection:
+								String(selectedRequest.status || "").toLowerCase() === "pending" ? "row" : "column",
+						}}
+					>
+						{String(selectedRequest.status || "").toLowerCase() === "pending" && (
+							<>
+								<button
+									style={{ ...btnApprove, flex: 1 }}
+									onClick={() => handleSetStatus(selectedRequest.id, "approved")}
+								>
+									Approve
+								</button>
+								<button
+									style={{ ...btnReject, flex: 1 }}
+									onClick={() => handleSetStatus(selectedRequest.id, "rejected")}
+								>
+									Reject
+								</button>
+							</>
+						)}
+
+						{String(selectedRequest.status || "").toLowerCase() === "approved" && (
+							<button style={btnReturn} onClick={() => handleReturn(selectedRequest.id)}>
+								Mark Returned
+							</button>
+						)}
+					</div>
+				</div>
+			</div>
+		)}
     </div>
   );
 }
