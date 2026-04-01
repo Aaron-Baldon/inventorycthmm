@@ -23,7 +23,8 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 					top: 0,
 					left: open ? 0 : "-260px",
 					width: "260px",
-					height: "100vh",
+					height: "100dvh",
+					maxHeight: "100vh",
 					background: "#f8f9fa",
 					borderRight: "1px solid #ddd",
 					transition: "left 0.3s ease",
@@ -95,16 +96,24 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 					/>
 				</div>
 
-				{/* Logout Option Only */}
-				<MenuItem
-					label="Logout"
-					onClick={() => {
-						logout();
-						navigate("/");
-						onClose();
+				<div
+					style={{
+						position: "sticky",
+						bottom: 0,
+						background: "#f8f9fa",
+						paddingTop: "10px",
 					}}
-					isLogout
-				/>
+				>
+					<MenuItem
+						label="Logout"
+						onClick={() => {
+							logout();
+							navigate("/");
+							onClose();
+						}}
+						isLogout
+					/>
+				</div>
 			</div>
 		</>
 	);
