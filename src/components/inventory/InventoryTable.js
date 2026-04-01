@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddItemModal from "./AddItemModal";
 import * as XLSX from "xlsx";
 import { createItem, updateItem, deleteItem } from "../../helper/api";
@@ -70,6 +70,15 @@ export default function InventoryTable({ items = [], setItems }) {
 	const toast = useToast();
 	const { theme, themeName } = useTheme();
 	const isDark = themeName === "dark";
+	const [isMobile, setIsMobile] = useState(
+		typeof window !== "undefined" ? window.innerWidth <= 768 : false
+	);
+
+	useEffect(() => {
+		const onResize = () => setIsMobile(window.innerWidth <= 768);
+		window.addEventListener("resize", onResize);
+		return () => window.removeEventListener("resize", onResize);
+	}, []);
 
 	const tdTheme = {
 		...td,
@@ -203,7 +212,9 @@ export default function InventoryTable({ items = [], setItems }) {
 				display: "flex",
 				justifyContent: "space-between",
 				alignItems: "center",
-				marginBottom: "12px"
+				marginBottom: "12px",
+				gap: isMobile ? "10px" : undefined,
+				flexWrap: isMobile ? "wrap" : "nowrap",
 			}}>
 				{/* SEARCH */}
 				<input
@@ -213,7 +224,7 @@ export default function InventoryTable({ items = [], setItems }) {
 					onChange={(e) => setSearch(e.target.value)}
 					style={{
 						padding: "8px",
-						width: "260px",
+						width: isMobile ? "100%" : "260px",
 						borderRadius: "6px",
 						border: `1px solid ${theme.border}`,
 						background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
@@ -222,7 +233,7 @@ export default function InventoryTable({ items = [], setItems }) {
 				/>
 
 				{/* CRUD */}
-				<div style={{ display: "flex", gap: "8px" }}>
+				<div style={{ display: "flex", gap: "8px", flexWrap: isMobile ? "wrap" : "nowrap" }}>
 					<button
 						onClick={() => { setEditingItem(null); setShowModal(true); }}
 						style={primaryBtn}
@@ -254,73 +265,85 @@ export default function InventoryTable({ items = [], setItems }) {
 			</div>
 
 			{/* 🔹 TABLE */}
-			<table
+			<div
 				style={{
 					width: "100%",
-					borderCollapse: "collapse",
+					overflowX: isMobile ? "auto" : "visible",
+					overflowY: "hidden",
+					WebkitOverflowScrolling: "touch",
 					background: theme.card,
-					color: theme.text,
-					overflow: "hidden",
-					boxShadow: "0 6px 18px rgba(13,71,161,0.12)"
+					borderRadius: "12px",
 				}}
 			>
-				<thead>
-					<tr>
-						<th style={th}>Select</th>
-						{["No", "Item Code", "Item Name", "Category", "Quantity"].map(h => (
-							<th key={h} style={th}>{h}</th>
-						))}
-					</tr>
-				</thead>
-
-				<tbody>
-					{filteredItems.length === 0 ? (
+				<table
+					style={{
+						width: "100%",
+						minWidth: isMobile ? "720px" : undefined,
+						borderCollapse: "collapse",
+						background: theme.card,
+						color: theme.text,
+						overflow: "hidden",
+						boxShadow: "0 6px 18px rgba(13,71,161,0.12)"
+					}}
+				>
+					<thead>
 						<tr>
-							<td colSpan="6" style={{ padding: "15px", textAlign: "center" }}>
-								No items found
-							</td>
-							
+							<th style={th}>Select</th>
+							{["No", "Item Code", "Item Name", "Category", "Quantity"].map(h => (
+								<th key={h} style={th}>{h}</th>
+							))}
 						</tr>
-					) : (
-						filteredItems.map((item, i) => {
-							const isSelected = selectedItem?.id === item.id;
-							const rowBg = isSelected
-								? (isDark ? "rgba(255,255,255,0.08)" : "#dbe7f7")
-								: (i % 2 === 0
-									? (isDark ? "rgba(255,255,255,0.02)" : "#ffffff")
-									: (isDark ? "rgba(255,255,255,0.04)" : "#eef3fb"));
-							return (
-								<tr
-									key={item.id}
-									onClick={() => setSelectedItem(item)}
-									style={{
-										cursor: "pointer",
-										background: rowBg,
-										transition: "background 0.2s ease",
-									}}
-								>
-									<td style={tdTheme} onClick={(e) => e.stopPropagation()}>
-										<input
-											type="checkbox"
-											checked={selectedIds.includes(item.id)}
-											onChange={() => toggleSelect(item.id)}
-											style={{
-												transform: "scale(1.1)",
-												accentColor: "#0d47a1"
-											}}
-										/>
-									</td>
-									<td style={tdTheme}>{i + 1}</td>
-									<td style={tdTheme}>{item.item_code}</td>
-									<td style={tdTheme}>{item.item_name}</td>
-									<td style={tdTheme}>{item.category}</td>
-									<td style={tdTheme}>{item.quantity}</td>
-								</tr>
-							);
-						})
-					)}
-				</tbody>
-			</table>
+					</thead>
+
+					<tbody>
+						{filteredItems.length === 0 ? (
+							<tr>
+								<td colSpan="6" style={{ padding: "15px", textAlign: "center" }}>
+									No items found
+								</td>
+								
+							</tr>
+						) : (
+							filteredItems.map((item, i) => {
+								const isSelected = selectedItem?.id === item.id;
+								const rowBg = isSelected
+									? (isDark ? "rgba(255,255,255,0.08)" : "#dbe7f7")
+									: (i % 2 === 0
+										? (isDark ? "rgba(255,255,255,0.02)" : "#ffffff")
+										: (isDark ? "rgba(255,255,255,0.04)" : "#eef3fb"));
+								return (
+									<tr
+										key={item.id}
+										onClick={() => setSelectedItem(item)}
+										style={{
+											cursor: "pointer",
+											background: rowBg,
+											transition: "background 0.2s ease",
+										}}
+									>
+										<td style={tdTheme} onClick={(e) => e.stopPropagation()}>
+											<input
+												type="checkbox"
+												checked={selectedIds.includes(item.id)}
+												onChange={() => toggleSelect(item.id)}
+												style={{
+													transform: "scale(1.1)",
+													accentColor: "#0d47a1"
+												}}
+											/>
+										</td>
+										<td style={tdTheme}>{i + 1}</td>
+										<td style={tdTheme}>{item.item_code}</td>
+										<td style={tdTheme}>{item.item_name}</td>
+										<td style={tdTheme}>{item.category}</td>
+										<td style={tdTheme}>{item.quantity}</td>
+									</tr>
+								);
+							})
+						)}
+					</tbody>
+				</table>
+			</div>
 
 			{/* 🔹 BOTTOM RIGHT BUTTONS */}
 			<div style={{
