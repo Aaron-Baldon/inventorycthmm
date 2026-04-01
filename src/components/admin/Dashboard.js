@@ -244,7 +244,7 @@ export default function Dashboard() {
       chartGrid: { ...styles.chartGrid },
       table: { ...styles.table },
       card: { background: theme.card, color: text, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" },
-      tableCard: { background: theme.card, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" },
+      tableCard: { ...styles.tableCard, background: theme.card, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)", overflowX: 'auto', overflowY: 'hidden' },
       th: { background: tableHeaderBg, color: mutedText, borderBottom: `1px solid ${border}` },
       td: { color: text, borderBottom: `1px solid ${tableRowBorder}` },
       progressCard: { background: theme.card, color: text, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" },
@@ -340,7 +340,7 @@ export default function Dashboard() {
           <table
             style={{
               ...ui.table,
-              minWidth: isMobile ? "600px" : "100%", // 🔥 para scrollable
+              minWidth: isMobile ? "720px" : "100%", // 🔥 para scrollable
             }}
           >
             <thead>
@@ -400,12 +400,19 @@ export default function Dashboard() {
 
                     <td style={{ ...ui.td, textAlign: "center" }}>
                       {String(r.status).toLowerCase() === "pending" ? (
-                        <div style={styles.actionBtns}>
+                        <div
+                          style={{
+                            ...styles.actionBtns,
+                            flexDirection: isMobile ? "column" : "row",
+                            gap: isMobile ? "6px" : styles.actionBtns.gap,
+                            alignItems: "stretch",
+                          }}
+                        >
                           <button
                             onClick={() =>
                               handleSetStatus(r.id, "approved")
                             }
-                            style={ui.approveBtn}
+                            style={{ ...ui.approveBtn, width: isMobile ? "100%" : "auto" }}
                           >
                             Approve
                           </button>
@@ -414,7 +421,7 @@ export default function Dashboard() {
                             onClick={() =>
                               handleSetStatus(r.id, "cancelled")
                             }
-                            style={ui.rejectBtn}
+                            style={{ ...ui.rejectBtn, width: isMobile ? "100%" : "auto" }}
                           >
                             Reject
                           </button>
