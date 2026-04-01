@@ -10,11 +10,15 @@ export default function StudentPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [page, setPage] = useState("home");
   const [notification, setNotification] = useState("");
-  const { theme } = useTheme();
+  const { theme, setThemeScope } = useTheme();
 
   useEffect(() => {
     document.title = "Student | Inventory System";
   }, []);
+
+  useEffect(() => {
+    setThemeScope("student");
+  }, [setThemeScope]);
 
   useEffect(() => {
     if (notification) {

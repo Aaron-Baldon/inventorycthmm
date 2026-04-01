@@ -37,4 +37,10 @@ export function getUser() {
 
 export function logout() {
   localStorage.removeItem(STORAGE_KEY);
+
+  try {
+    window.location.replace("/");
+  } catch {
+    // ignore
+  }
 }

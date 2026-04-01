@@ -22,6 +22,7 @@ import {
 } from "../../helper/api";
 
 import { useToast } from "../../context/ToastContext";
+import { useTheme } from "../../context/ThemeContext";
 
 import { getUser } from "../services/authService";
 
@@ -62,6 +63,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const { theme, themeName } = useTheme();
+  const isDarkMode = themeName === "dark";
 
   useEffect(() => {
     const handleResize = () => {
@@ -228,17 +231,44 @@ export default function Dashboard() {
     }
   };
 
+  const ui = useMemo(() => {
+    const border = isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
+    const tableHeaderBg = isDarkMode ? "rgba(255,255,255,0.06)" : "#f8fafc";
+    const tableRowBorder = isDarkMode ? "rgba(255,255,255,0.08)" : "#f1f5f9";
+    const mutedText = isDarkMode ? "rgba(255,255,255,0.72)" : "#475569";
+    const text = theme.text;
+    return {
+      dashboard: { ...styles.dashboard, background: theme.bg, color: text },
+      header: { ...styles.header, color: text },
+      topCards: { ...styles.topCards },
+      chartGrid: { ...styles.chartGrid },
+      table: { ...styles.table },
+      card: { background: theme.card, color: text, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" },
+      tableCard: { background: theme.card, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" },
+      th: { background: tableHeaderBg, color: mutedText, borderBottom: `1px solid ${border}` },
+      td: { color: text, borderBottom: `1px solid ${tableRowBorder}` },
+      progressCard: { background: theme.card, color: text, boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" },
+      donutInner: { background: theme.card, color: text },
+      progressText: { color: mutedText },
+      calendarNavBtn: { background: isDarkMode ? "rgba(255,255,255,0.08)" : "#eee", color: text },
+      approveBtn: { background: "#2563eb", color: "#fff" },
+      rejectBtn: { background: "#dc2626", color: "#fff" },
+      panelCardBg: theme.card,
+      panelMutedText: mutedText,
+    };
+  }, [isDarkMode, theme.bg, theme.card, theme.text]);
+
   return (
-    <div style={styles.dashboard}>
+    <div style={ui.dashboard}>
       {/* HEADER */}
-      <div style={styles.header}>
+      <div style={ui.header}>
         <h2>Dashboard User</h2>
       </div>
 
       {/* KPI CARDS */}
       <div
         style={{
-          ...styles.topCards,
+          ...ui.topCards,
           ...(isMobile && {
             gridTemplateColumns: "1fr 1fr",
             gap: "12px", // 🔥 dagdag space
@@ -254,7 +284,7 @@ export default function Dashboard() {
       {/* CHARTS */}
       <div
         style={{
-          ...styles.chartGrid,
+          ...ui.chartGrid,
           ...(isMobile && {
             gridTemplateColumns: "1fr",
           }),
@@ -306,21 +336,21 @@ export default function Dashboard() {
       <div style={{ marginTop: "30px" }}>
         <h3>Pending Room Reservations</h3>
 
-        <div style={styles.tableCard}>
+        <div style={ui.tableCard}>
           <table
             style={{
-              ...styles.table,
+              ...ui.table,
               minWidth: isMobile ? "600px" : "100%", // 🔥 para scrollable
             }}
           >
             <thead>
               <tr>
-                <th style={styles.th}>Requested By</th>
-                <th style={styles.th}>Room</th>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Time</th>
-                <th style={styles.th}>Status</th>
-                <th style={{ ...styles.th, textAlign: "center" }}>Action</th>
+                <th style={ui.th}>Requested By</th>
+                <th style={ui.th}>Room</th>
+                <th style={ui.th}>Date</th>
+                <th style={ui.th}>Time</th>
+                <th style={{ ...ui.th, textAlign: "center" }}>Status</th>
+                <th style={{ ...ui.th, textAlign: "center" }}>Action</th>
               </tr>
             </thead>
 
@@ -334,24 +364,28 @@ export default function Dashboard() {
               ) : (
                 reservations.map((r) => (
                   <tr key={r.id} style={styles.row}>
-                    <td style={styles.td}>
+                    <td style={ui.td}>
                       {r.reserved_by_name || `User #${r.reserved_by}`}
                     </td>
 
-                    <td style={styles.td}>{r.room_name}</td>
+                    <td style={ui.td}>{r.room_name}</td>
 
-                    <td style={styles.td}>
+                    <td style={ui.td}>
                       {String(r.reservation_date).slice(0, 10)}
                     </td>
 
-                    <td style={styles.td}>
+                    <td style={ui.td}>
                       {formatTime12(r.start_time)} –{" "}
                       {formatTime12(r.end_time)}
                     </td>
 
-                    <td style={styles.td}>
+                    <td style={{ ...ui.td, textAlign: "center" }}>
                       <span
                         style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          minWidth: "92px",
                           padding: "5px 12px",
                           borderRadius: "20px",
                           fontSize: "12px",
@@ -364,14 +398,14 @@ export default function Dashboard() {
                       </span>
                     </td>
 
-                    <td style={{ ...styles.td, textAlign: "center" }}>
+                    <td style={{ ...ui.td, textAlign: "center" }}>
                       {String(r.status).toLowerCase() === "pending" ? (
                         <div style={styles.actionBtns}>
                           <button
                             onClick={() =>
                               handleSetStatus(r.id, "approved")
                             }
-                            style={styles.approveBtn}
+                            style={ui.approveBtn}
                           >
                             Approve
                           </button>
@@ -380,7 +414,7 @@ export default function Dashboard() {
                             onClick={() =>
                               handleSetStatus(r.id, "cancelled")
                             }
-                            style={styles.rejectBtn}
+                            style={ui.rejectBtn}
                           >
                             Reject
                           </button>
@@ -406,15 +440,25 @@ export default function Dashboard() {
           }}
         >
           <div style={styles.modalContent}>
-            <div style={styles.reservationPanelCard}>
+            <div
+              style={{
+                ...styles.reservationPanelCard,
+                background: ui.panelCardBg,
+                color: theme.text,
+                border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`,
+              }}
+            >
               <div style={styles.reservationPanelHeader}>
                 <div style={{ fontWeight: 700 }}>Reservations</div>
-                <button onClick={() => setPanelOpen(false)} style={styles.panelCloseBtn}>
+                <button
+                  onClick={() => setPanelOpen(false)}
+                  style={{ ...styles.panelCloseBtn, color: theme.text }}
+                >
                   ✕
                 </button>
               </div>
 
-              <div style={{ fontSize: "13px", marginBottom: "10px", color: "#475569" }}>
+              <div style={{ fontSize: "13px", marginBottom: "10px", color: ui.panelMutedText }}>
                 {selectedDate || ""}
               </div>
 
@@ -423,7 +467,12 @@ export default function Dashboard() {
                 <select
                   value={selectedRoomId || ""}
                   onChange={(e) => setSelectedRoomId(Number(e.target.value))}
-                  style={styles.panelSelect}
+                  style={{
+                    ...styles.panelSelect,
+                    background: isDarkMode ? "rgba(255,255,255,0.06)" : "#fff",
+                    color: theme.text,
+                    border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "#cbd5e1"}`,
+                  }}
                 >
                   {rooms.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -443,11 +492,31 @@ export default function Dashboard() {
               >
                 <div>
                   <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>Start</div>
-                  <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={styles.panelInput} />
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    style={{
+                      ...styles.panelInput,
+                      background: isDarkMode ? "rgba(255,255,255,0.06)" : "#fff",
+                      color: theme.text,
+                      border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "#cbd5e1"}`,
+                    }}
+                  />
                 </div>
                 <div>
                   <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>End</div>
-                  <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={styles.panelInput} />
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    style={{
+                      ...styles.panelInput,
+                      background: isDarkMode ? "rgba(255,255,255,0.06)" : "#fff",
+                      color: theme.text,
+                      border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "#cbd5e1"}`,
+                    }}
+                  />
                 </div>
               </div>
 
@@ -493,7 +562,16 @@ export default function Dashboard() {
                 Reserve
               </button>
 
-              {panelMessage && <div style={styles.panelMessage}>{panelMessage}</div>}
+              {panelMessage && (
+                <div
+                  style={{
+                    ...styles.panelMessage,
+                    color: isDarkMode ? "rgba(255,255,255,0.85)" : styles.panelMessage.color,
+                  }}
+                >
+                  {panelMessage}
+                </div>
+              )}
 
               <div style={{ marginTop: "12px" }}>
                 <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "6px" }}>
@@ -506,11 +584,19 @@ export default function Dashboard() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {dayReservations.map((r) => (
-                      <div key={r.id} style={styles.panelReservationRow}>
+                      <div
+                        key={r.id}
+                        style={{
+                          ...styles.panelReservationRow,
+                          background: isDarkMode ? "rgba(255,255,255,0.04)" : "#f8fafc",
+                          border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "#e2e8f0"}`,
+                          color: theme.text,
+                        }}
+                      >
                         <div style={{ fontWeight: 600 }}>
                           {formatTime12(r.start_time)} – {formatTime12(r.end_time)}
                         </div>
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>
+                        <div style={{ fontSize: "12px", color: ui.panelMutedText }}>
                           {String(r.status || "").toLowerCase()}
                         </div>
                       </div>
@@ -527,22 +613,21 @@ export default function Dashboard() {
 }
 
 function Card({ title, value, dark, isMobile }) {
+  const { theme, themeName } = useTheme();
+  const isDarkMode = themeName === "dark";
   return (
     <div
       style={{
-        ...styles.statCard,
-        background: dark ? "#1f3b63" : "#fff",
-        color: dark ? "#fff" : "#333",
-
-        ...(isMobile && {
-          padding: "14px",
-          minHeight: "90px",
-        }),
+        background: theme.card,
+        color: theme.text,
+        padding: isMobile ? "14px" : "20px",
+        borderRadius: "12px",
+        boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)",
+        minHeight: isMobile ? "90px" : "120px",
       }}
     >
-      <div style={styles.statTop}>
-        <span>{title}</span>
-        <span style={styles.icon}>★</span>
+      <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "10px" }}>
+        {title}
       </div>
 
       <h2
@@ -558,9 +643,11 @@ function Card({ title, value, dark, isMobile }) {
 }
 
 function ChartCard({ title, children }) {
+  const { theme, themeName } = useTheme();
+  const isDarkMode = themeName === "dark";
   return (
-    <div style={styles.card}>
-      <h4 style={{ marginBottom: "10px" }}>{title}</h4>
+    <div style={{ background: theme.card, color: theme.text, padding: "20px", borderRadius: "12px", boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" }}>
+      <h4 style={{ marginBottom: "10px", color: theme.text }}>{title}</h4>
 
       <div style={{ width: "100%", height: "340px" }}>{children}</div>
     </div>
@@ -568,97 +655,113 @@ function ChartCard({ title, children }) {
 }
 
 function ProgressWidget({ usageRate, usedRooms, availableRooms }) {
+  const { theme, themeName } = useTheme();
+  const isDarkMode = themeName === "dark";
+  const muted = isDarkMode ? "rgba(255,255,255,0.75)" : "#334155";
   return (
-    <div style={styles.progressCard}>
-      <h4 style={{ marginBottom: "10px" }}>Room Usage</h4>
+    <div style={{ background: theme.card, color: theme.text, padding: "20px", borderRadius: "12px", boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" }}>
+      <h4 style={{ marginBottom: "10px", color: theme.text }}>Room Usage</h4>
 
       <div
         style={{
-          ...styles.donut,
-          background: `conic-gradient(#f59e0b ${usageRate}%, #e5e7eb ${usageRate}%)`
+          width: "100%",
+          height: "200px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <div style={styles.donutInner}>{usageRate}%</div>
+        <div
+          style={{
+            width: "120px",
+            height: "120px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `conic-gradient(#f59e0b ${usageRate}%, #e5e7eb ${usageRate}%)`,
+          }}
+        >
+          <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1, color: theme.text }}>{usageRate}%</div>
+        </div>
       </div>
 
-      <div style={styles.progressText}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", color: muted }}>
         <p>🟠 Used: {usedRooms}</p>
         <p>🔵 Available: {availableRooms}</p>
       </div>
 
-      <button style={styles.orangeBtn}>View Rooms</button>
+      <button style={{ background: "#f59e0b", color: "#fff", padding: "8px 14px", borderRadius: "8px" }}>
+        View Rooms
+      </button>
     </div>
   );
 }
 
 function MiniCalendar({ onDateClick }) {
+  const { theme, themeName } = useTheme();
+  const isDarkMode = themeName === "dark";
+  const weekText = isDarkMode ? "rgba(255,255,255,0.75)" : theme.text;
+  const dayText = isDarkMode ? "rgba(255,255,255,0.85)" : "#111";
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState([]);
 
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [events, setEvents] = useState([])
-  const [hoverData, setHoverData] = useState(null)
-  const [hoverPos, setHoverPos] = useState({x:0,y:0})
-  const [selectedDate,setSelectedDate] = useState(null)
+  const [hoverData, setHoverData] = useState(null);
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const toYMD = (d) => {
-    const y = d.getFullYear()
-    const m = String(d.getMonth()+1).padStart(2,"0")
-    const day = String(d.getDate()).padStart(2,"0")
-    return `${y}-${m}-${day}`
-  }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
 
   const loadEvents = async (date) => {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1).toISOString().slice(0, 10);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-    const start = new Date(date.getFullYear(), date.getMonth(), 1)
-      .toISOString().slice(0,10)
-
-    const end = new Date(date.getFullYear(), date.getMonth()+1, 0)
-      .toISOString().slice(0,10)
-
-    try{
-      const data = await getEvents({ start, end })
-      setEvents(Array.isArray(data) ? data : [])
-    }catch{
-      setEvents([])
+    try {
+      const data = await getEvents({ start, end });
+      setEvents(Array.isArray(data) ? data : []);
+    } catch {
+      setEvents([]);
     }
+  };
 
-  }
+  useEffect(() => {
+    loadEvents(currentDate);
+  }, [currentDate]);
 
-  useEffect(()=>{
-    loadEvents(currentDate)
-  },[currentDate])
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
 
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const firstDay = new Date(year,month,1).getDay()
-  const daysInMonth = new Date(year,month+1,0).getDate()
+  const days = [];
 
-  const days=[]
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(d);
 
-  for(let i=0;i<firstDay;i++) days.push(null)
-  for(let d=1; d<=daysInMonth; d++) days.push(d)
-
-  return(
-
-    <div style={styles.calendarCard}>
-
+  return (
+    <div style={{ background: theme.card, color: theme.text, padding: "20px", borderRadius: "12px", boxShadow: isDarkMode ? "0 6px 18px rgba(0,0,0,0.35)" : "0 6px 18px rgba(0,0,0,0.08)" }}>
       {/* HEADER */}
-      <div style={styles.calendarHeaderBar}>
-
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <button
-          onClick={()=>setCurrentDate(new Date(year,month-1,1))}
-          style={styles.calendarNavBtn}
+          onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+          style={{ background: isDarkMode ? "rgba(255,255,255,0.08)" : "#eee", color: theme.text, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", minWidth: 44 }}
         >
           ‹
         </button>
 
-        <h4>
-          {currentDate.toLocaleString("default",{month:"long"})} {year}
+        <h4 style={{ color: theme.text, margin: 0, flex: 1, textAlign: "center" }}>
+          {currentDate.toLocaleString("default", { month: "long" })} {year}
         </h4>
 
         <button
-          onClick={()=>setCurrentDate(new Date(year,month+1,1))}
-          style={styles.calendarNavBtn}
+          onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+          style={{ background: isDarkMode ? "rgba(255,255,255,0.08)" : "#eee", color: theme.text, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", minWidth: 44 }}
         >
           ›
         </button>
@@ -668,44 +771,43 @@ function MiniCalendar({ onDateClick }) {
       {/* GRID */}
       <div style={styles.calendarGrid}>
 
-        {["SUN","MON","TUE","WED","THU","FRI","SAT"].map(d=>
-          <div key={d} style={styles.calendarWeek}>{d}</div>
+        {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d) =>
+          <div key={d} style={{ ...styles.calendarWeek, color: weekText }}>{d}</div>
         )}
 
-        {days.map((d,i)=>{
+        {days.map((d, i) => {
 
-          if(!d) return <div key={i}></div>
+          if (!d) return <div key={i}></div>
 
-          const dateStr = toYMD(new Date(year,month,d))
+          const dateStr = toYMD(new Date(year, month, d))
 
-          const reservations = events.filter(e=>
-            e.start.slice(0,10)===dateStr
+          const reservations = events.filter((e) =>
+            e.start.slice(0, 10) === dateStr
           )
 
-          const hasEvent = reservations.length>0
+          const hasEvent = reservations.length > 0
           const isSelected = selectedDate === dateStr
 
-          return(
-
+          return (
             <div
               key={i}
 
               style={{
                 ...styles.calendarDay,
-                background:isSelected
+                background: isSelected
                   ? "#3b82f6"
                   : hasEvent
-                  ? "#f97316"
-                  : "transparent",
-                color:isSelected || hasEvent ? "#fff" : "#111"
+                    ? "#f97316"
+                    : "transparent",
+                color: isSelected || hasEvent ? "#fff" : dayText
               }}
 
-              onMouseEnter={(e)=>{
-                if(reservations.length>0){
+              onMouseEnter={(e) => {
+                if (reservations.length > 0) {
                   setHoverData(reservations)
                   setHoverPos({
-                    x:e.clientX,
-                    y:e.clientY
+                    x: e.clientX,
+                    y: e.clientY
                   })
                 }
               }}

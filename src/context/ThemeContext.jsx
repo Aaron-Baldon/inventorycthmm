@@ -1,41 +1,57 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { themes } from "../theme/studentTheme";
 
-
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-	const [themeName, setThemeName] = useState(
-		localStorage.getItem("theme") || "dark"
-	);
+  const [themeScope, setThemeScope] = useState("student");
 
-	useEffect(() => {
-		localStorage.setItem("theme", themeName);
-	}, [themeName]);
+  const [studentThemeName, setStudentThemeName] = useState(
+    localStorage.getItem("theme_student") || "dark"
+  );
+  const [adminThemeName, setAdminThemeName] = useState(
+    localStorage.getItem("theme_admin") || "dark"
+  );
 
-	useEffect(() => {
-		const root = document.documentElement;
-		if (themeName === "dark") root.classList.add("dark");
-		else root.classList.remove("dark");
-	}, [themeName]);
+  const themeName = themeScope === "admin" ? adminThemeName : studentThemeName;
 
-	const toggleTheme = () => {
-		setThemeName(prev => (prev === "dark" ? "light" : "dark"));
-	};
+  useEffect(() => {
+    localStorage.setItem("theme_student", studentThemeName);
+  }, [studentThemeName]);
 
-	return (
-		<ThemeContext.Provider
-			value={{
-				themeName,
-				theme: themes[themeName],
-				toggleTheme
-			}}
-		>
-			{children}
-		</ThemeContext.Provider>
-	);
+  useEffect(() => {
+    localStorage.setItem("theme_admin", adminThemeName);
+  }, [adminThemeName]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (themeName === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+  }, [themeName]);
+
+  const toggleTheme = () => {
+    if (themeScope === "admin") {
+      setAdminThemeName((prev) => (prev === "dark" ? "light" : "dark"));
+      return;
+    }
+    setStudentThemeName((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
+  return (
+    <ThemeContext.Provider
+      value={{
+        themeScope,
+        setThemeScope,
+        themeName,
+        theme: themes[themeName],
+        toggleTheme
+      }}
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
-	return useContext(ThemeContext);
+  return useContext(ThemeContext);
 }

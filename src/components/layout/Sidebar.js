@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/authService";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function Sidebar({ open, onClose, onNavigate }) {
 	const navigate = useNavigate();
+	const { theme, themeName } = useTheme();
 	return (
 		<>
 			{open && (
@@ -25,8 +27,8 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 					width: "260px",
 					height: "100dvh",
 					maxHeight: "100vh",
-					background: "#f8f9fa",
-					borderRight: "1px solid #ddd",
+					background: theme.sidebar,
+					borderRight: `1px solid ${theme.border}`,
 					transition: "left 0.3s ease",
 					zIndex: 10,
 					padding: "20px",
@@ -44,7 +46,7 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 						marginBottom: "25px",
 						cursor: "pointer",
 						fontWeight: "bold",
-						color: "#0d47a1",
+						color: theme.text,
 					}}
 				>
 					← Back
@@ -88,11 +90,11 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 					/>
 
 					<MenuItem
-					label="FAQ Manager"
-					onClick={() => {
-						onNavigate("faq");
-						onClose();
-					}}
+						label="FAQ Manager"
+						onClick={() => {
+							onNavigate("faq");
+							onClose();
+						}}
 					/>
 				</div>
 
@@ -100,7 +102,7 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 					style={{
 						position: "sticky",
 						bottom: 0,
-						background: "#f8f9fa",
+						background: theme.sidebar,
 						paddingTop: "10px",
 					}}
 				>
@@ -120,6 +122,7 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 }
 
 function MenuItem({ label, onClick, isLogout }) {
+	const { theme } = useTheme();
 	return (
 		<div
 			onClick={onClick}
@@ -129,16 +132,17 @@ function MenuItem({ label, onClick, isLogout }) {
 				cursor: "pointer",
 				marginBottom: "8px",
 				fontWeight: "500",
-				color: isLogout ? "#d32f2f" : "#333",
+				color: isLogout ? "#d32f2f" : theme.text,
 				transition: "0.2s",
 			}}
+
 			onMouseEnter={(e) => {
 				e.currentTarget.style.background = isLogout ? "#d32f2f" : "#0d47a1";
 				e.currentTarget.style.color = "white";
 			}}
 			onMouseLeave={(e) => {
 				e.currentTarget.style.background = "transparent";
-				e.currentTarget.style.color = isLogout ? "#d32f2f" : "#333";
+				e.currentTarget.style.color = isLogout ? "#d32f2f" : theme.text;
 			}}
 		>
 			{label}

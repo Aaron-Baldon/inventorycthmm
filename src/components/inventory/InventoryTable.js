@@ -3,6 +3,7 @@ import AddItemModal from "./AddItemModal";
 import * as XLSX from "xlsx";
 import { createItem, updateItem, deleteItem } from "../../helper/api";
 import { useToast } from "../../context/ToastContext";
+import { useTheme } from "../../context/ThemeContext";
 
 
 /* TABLE STYLES */
@@ -67,6 +68,14 @@ export default function InventoryTable({ items = [], setItems }) {
 	const [search, setSearch] = useState("");
 	const [selectedIds, setSelectedIds] = useState([]);
 	const toast = useToast();
+	const { theme, themeName } = useTheme();
+	const isDark = themeName === "dark";
+
+	const tdTheme = {
+		...td,
+		color: theme.text,
+		border: `1px solid ${theme.border}`,
+	};
 
 	/* CREATE / UPDATE */
 	const saveItem = async (data) => {
@@ -188,7 +197,7 @@ export default function InventoryTable({ items = [], setItems }) {
 
 
 	return (
-		<div style={{ width: "100%" }}>
+		<div style={{ width: "100%", color: theme.text }}>
 			{/* 🔹 TOP BAR */}
 			<div style={{
 				display: "flex",
@@ -206,7 +215,9 @@ export default function InventoryTable({ items = [], setItems }) {
 						padding: "8px",
 						width: "260px",
 						borderRadius: "6px",
-						border: "1px solid #dadce0"
+						border: `1px solid ${theme.border}`,
+						background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+						color: theme.text,
 					}}
 				/>
 
@@ -247,7 +258,8 @@ export default function InventoryTable({ items = [], setItems }) {
 				style={{
 					width: "100%",
 					borderCollapse: "collapse",
-					background: "white",
+					background: theme.card,
+					color: theme.text,
 					overflow: "hidden",
 					boxShadow: "0 6px 18px rgba(13,71,161,0.12)"
 				}}
@@ -270,41 +282,42 @@ export default function InventoryTable({ items = [], setItems }) {
 							
 						</tr>
 					) : (
-						filteredItems.map((item, i) => (
-							<tr
-								key={item.id}
-								onClick={() => setSelectedItem(item)}
-								style={{
-									cursor: "pointer",
-									background:
-										selectedItem?.id === item.id
-											? "#dbe7f7"          // selected
-											: i % 2 === 0
-												? "#ffffff"       // white
-												: "#eef3fb",      // light blue
-									transition: "background 0.2s ease"
-								}}
-							>
-								<td style={td} onClick={(e) => e.stopPropagation()}>
-									<input
-										type="checkbox"
-										checked={selectedIds.includes(item.id)}
-										onChange={() => toggleSelect(item.id)}
-										style={{
-											transform: "scale(1.1)",
-											accentColor: "#0d47a1"
-										}}
-									/>
-								</td>
-
-								<td style={td}>{i + 1}</td>
-								<td style={td}>{item.item_code}</td>
-								<td style={td}>{item.item_name}</td>
-								<td style={td}>{item.category}</td>
-								<td style={td}>{item.quantity}</td>
-								
-							</tr>
-						))
+						filteredItems.map((item, i) => {
+							const isSelected = selectedItem?.id === item.id;
+							const rowBg = isSelected
+								? (isDark ? "rgba(255,255,255,0.08)" : "#dbe7f7")
+								: (i % 2 === 0
+									? (isDark ? "rgba(255,255,255,0.02)" : "#ffffff")
+									: (isDark ? "rgba(255,255,255,0.04)" : "#eef3fb"));
+							return (
+								<tr
+									key={item.id}
+									onClick={() => setSelectedItem(item)}
+									style={{
+										cursor: "pointer",
+										background: rowBg,
+										transition: "background 0.2s ease",
+									}}
+								>
+									<td style={tdTheme} onClick={(e) => e.stopPropagation()}>
+										<input
+											type="checkbox"
+											checked={selectedIds.includes(item.id)}
+											onChange={() => toggleSelect(item.id)}
+											style={{
+												transform: "scale(1.1)",
+												accentColor: "#0d47a1"
+											}}
+										/>
+									</td>
+									<td style={tdTheme}>{i + 1}</td>
+									<td style={tdTheme}>{item.item_code}</td>
+									<td style={tdTheme}>{item.item_name}</td>
+									<td style={tdTheme}>{item.category}</td>
+									<td style={tdTheme}>{item.quantity}</td>
+								</tr>
+							);
+						})
 					)}
 				</tbody>
 			</table>
@@ -316,9 +329,24 @@ export default function InventoryTable({ items = [], setItems }) {
 				marginTop: "12px",
 				gap: "6px"
 			}}>
-				<button style={btn}>PDF</button>
-				<button style={btn}>CSV</button>
-				<label style={btn}>
+				<button style={{
+					...btn,
+					background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+					color: theme.text,
+					border: `1px solid ${theme.border}`,
+				}}>PDF</button>
+				<button style={{
+					...btn,
+					background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+					color: theme.text,
+					border: `1px solid ${theme.border}`,
+				}}>CSV</button>
+				<label style={{
+					...btn,
+					background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+					color: theme.text,
+					border: `1px solid ${theme.border}`,
+				}}>
 					Import Excel
 					<input
 						type="file"
@@ -327,7 +355,6 @@ export default function InventoryTable({ items = [], setItems }) {
 						style={{ display: "none" }}
 					/>
 				</label>
-
 			</div>
 
 			{/* 🔹 MODAL */}

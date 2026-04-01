@@ -1,11 +1,34 @@
 import { useEffect, useState } from "react";
 import { getProblemReports } from "../../helper/api";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function ProblemReports() {
+  const { theme, themeName } = useTheme();
+  const isDark = themeName === "dark";
+
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState(null);
+
+  const thTheme = {
+    ...th,
+    border: `1px solid ${theme.border}`,
+  };
+
+  const tdTheme = {
+    ...td,
+    background: theme.card,
+    color: theme.text,
+    border: `1px solid ${theme.border}`,
+  };
+
+  const tdMutedTheme = {
+    ...tdMuted,
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    color: isDark ? "rgba(255,255,255,0.7)" : tdMuted.color,
+  };
 
   const load = async () => {
     setLoading(true);
@@ -47,16 +70,17 @@ export default function ProblemReports() {
               width: "min(900px, 95vw)",
               maxHeight: "85vh",
               overflow: "auto",
-              background: "white",
+              background: theme.card,
+              color: theme.text,
               borderRadius: "12px",
               boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              border: "1px solid #e5e7eb",
+              border: `1px solid ${theme.border}`,
             }}
           >
             <div
               style={{
                 padding: "14px 16px",
-                borderBottom: "1px solid #e5e7eb",
+                borderBottom: `1px solid ${theme.border}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -69,8 +93,9 @@ export default function ProblemReports() {
               <button
                 onClick={() => setSelected(null)}
                 style={{
-                  border: "1px solid #dadce0",
-                  background: "#f1f3f4",
+                  border: `1px solid ${theme.border}`,
+                  background: isDark ? "rgba(255,255,255,0.08)" : "#f1f3f4",
+                  color: theme.text,
                   borderRadius: "10px",
                   padding: "6px 10px",
                   cursor: "pointer",
@@ -98,10 +123,11 @@ export default function ProblemReports() {
               <div style={{ marginTop: "14px" }}>
                 <div style={{ ...label, marginBottom: "6px" }}>Message</div>
                 <div style={{
-                  border: "1px solid #e5e7eb",
+                  border: `1px solid ${theme.border}`,
                   borderRadius: "10px",
                   padding: "12px",
-                  background: "#fafafa",
+                  background: isDark ? "rgba(255,255,255,0.04)" : "#fafafa",
+                  color: theme.text,
                   whiteSpace: "pre-wrap",
                   lineHeight: 1.45,
                 }}>
@@ -120,8 +146,9 @@ export default function ProblemReports() {
           style={{
             padding: "8px 12px",
             borderRadius: "8px",
-            border: "1px solid #dadce0",
-            background: "#f1f3f4",
+            border: `1px solid ${theme.border}`,
+            background: isDark ? "rgba(255,255,255,0.08)" : "#f1f3f4",
+            color: theme.text,
             cursor: "pointer",
           }}
           disabled={loading}
@@ -138,18 +165,18 @@ export default function ProblemReports() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={th}>ID</th>
-              <th style={th}>Student</th>
-              <th style={th}>Email</th>
-              <th style={th}>Message</th>
-              <th style={th}>Status</th>
-              <th style={th}>Created</th>
+              <th style={thTheme}>ID</th>
+              <th style={thTheme}>Student</th>
+              <th style={thTheme}>Email</th>
+              <th style={thTheme}>Message</th>
+              <th style={thTheme}>Status</th>
+              <th style={thTheme}>Created</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} style={tdMuted}>
+                <td colSpan={6} style={tdMutedTheme}>
                   Loading...
                 </td>
               </tr>
@@ -157,7 +184,7 @@ export default function ProblemReports() {
 
             {!loading && reports.length === 0 && (
               <tr>
-                <td colSpan={6} style={tdMuted}>
+                <td colSpan={6} style={tdMutedTheme}>
                   No reports.
                 </td>
               </tr>
@@ -169,10 +196,10 @@ export default function ProblemReports() {
                 onClick={() => setSelected(r)}
                 style={{ cursor: "pointer" }}
               >
-                <td style={td}>{r.id}</td>
-                <td style={td}>{r.student_full_name || r.student_school_id || r.student_id || "—"}</td>
-                <td style={td}>{r.student_email || "—"}</td>
-                <td style={{ ...td, textAlign: "left", maxWidth: "640px" }}>
+                <td style={tdTheme}>{r.id}</td>
+                <td style={tdTheme}>{r.student_full_name || r.student_school_id || r.student_id || "—"}</td>
+                <td style={tdTheme}>{r.student_email || "—"}</td>
+                <td style={{ ...tdTheme, textAlign: "left", maxWidth: "640px" }}>
                   <div style={{
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -182,8 +209,8 @@ export default function ProblemReports() {
                     {r.message}
                   </div>
                 </td>
-                <td style={td}>{String(r.status || "").toLowerCase()}</td>
-                <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString() : "—"}</td>
+                <td style={tdTheme}>{String(r.status || "").toLowerCase()}</td>
+                <td style={tdTheme}>{r.created_at ? new Date(r.created_at).toLocaleString() : "—"}</td>
               </tr>
             ))}
           </tbody>

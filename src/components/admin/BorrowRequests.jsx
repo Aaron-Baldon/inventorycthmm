@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getUser } from "../services/authService";
+import { useTheme } from "../../context/ThemeContext";
 import {
   getBorrowRequests,
   getBorrowRequestItems,
@@ -78,6 +79,17 @@ const btnReturn = {
 
 export default function BorrowRequests({ onInventoryChanged }) {
   const user = getUser();
+	const { theme, themeName } = useTheme();
+	const isDark = themeName === "dark";
+
+	const tdTheme = useMemo(() => {
+		return {
+			...td,
+			background: theme.card,
+			color: theme.text,
+			border: `1px solid ${theme.border}`,
+		};
+	}, [theme.card, theme.text, theme.border]);
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -205,7 +217,7 @@ export default function BorrowRequests({ onInventoryChanged }) {
   };
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ color: theme.text }}>
       <div
         style={{
           display: "flex",
@@ -248,9 +260,7 @@ export default function BorrowRequests({ onInventoryChanged }) {
       </div>
 
       {message && (
-        <div style={{ marginBottom: 12, fontWeight: 600, opacity: 0.95 }}>
-          {message}
-        </div>
+        <div style={{ marginBottom: "12px", color: "#c62828" }}>{message}</div>
       )}
 
       <div
@@ -261,24 +271,17 @@ export default function BorrowRequests({ onInventoryChanged }) {
           alignItems: "start",
         }}
       >
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            background: "white",
-            overflow: "hidden",
-            boxShadow: "0 6px 18px rgba(13,71,161,0.12)",
-          }}
-        >
-          <thead>
-            <tr>
-              {["ID", "Student ID", "Status", "Borrow Date", "Return Date", "Created At"].map((h) => (
-                <th key={h} style={th}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+        <div style={{ overflowX: "auto", background: theme.card, borderRadius: "12px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+				<tr>
+					{["ID", "Student ID", "Status", "Borrow Date", "Return Date", "Created At"].map((h) => (
+						<th key={h} style={th}>
+							{h}
+						</th>
+					))}
+				</tr>
+			</thead>
 
           <tbody>
             {filteredRequests.length === 0 ? (
@@ -296,34 +299,38 @@ export default function BorrowRequests({ onInventoryChanged }) {
                     onClick={() => handleSelectRequest(r)}
                     style={{
                       cursor: "pointer",
-                      background: isSelected ? "#dbe7f7" : "white",
+                      background: isSelected
+							? (isDark ? "rgba(255,255,255,0.08)" : "#dbe7f7")
+							: theme.card,
                       transition: "background 0.2s ease",
                     }}
                   >
-                    <td style={td}>{r.id}</td>
-                    <td style={td}>{r.student_school_id || r.student_id}</td>
-                    <td style={td}>{r.status}</td>
-                    <td style={td}>{String(r.borrow_date || "").slice(0, 10)}</td>
-                    <td style={td}>
+                    <td style={tdTheme}>{r.id}</td>
+                    <td style={tdTheme}>{r.student_school_id || r.student_id}</td>
+                    <td style={tdTheme}>{r.status}</td>
+                    <td style={tdTheme}>{String(r.borrow_date || "").slice(0, 10)}</td>
+                    <td style={tdTheme}>
                       {String(r.status || "").toLowerCase() === "returned"
                         ? String(r.returned_at || "").slice(0, 10)
                         : "—"}
                     </td>
-                    <td style={td}>{formatDateTime12(r.created_at)}</td>
+                    <td style={tdTheme}>{formatDateTime12(r.created_at)}</td>
                   </tr>
                 );
               })
             )}
           </tbody>
         </table>
+		</div>
 
         {selectedRequest && (
           <div
             style={{
-              border: "1px solid #e0e6ef",
+              border: `1px solid ${theme.border}`,
               borderRadius: 12,
               padding: 14,
-              background: "#fff",
+              background: theme.card,
+              color: theme.text,
               boxShadow: "0 6px 18px rgba(13,71,161,0.08)",
               position: "sticky",
               top: 90,
@@ -352,7 +359,7 @@ export default function BorrowRequests({ onInventoryChanged }) {
               </button>
             </div>
 
-            <hr style={{ borderColor: "#e0e6ef", margin: "12px 0" }} />
+            <hr style={{ borderColor: theme.border, margin: "12px 0" }} />
 
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Items</div>
 
@@ -368,8 +375,8 @@ export default function BorrowRequests({ onInventoryChanged }) {
                     style={{
                       padding: 10,
                       borderRadius: 10,
-                      border: "1px solid #e0e6ef",
-                      background: "#f8fbff",
+                      border: `1px solid ${theme.border}`,
+                      background: isDark ? "rgba(255,255,255,0.04)" : "#f8fbff",
                     }}
                   >
                     <div style={{ fontWeight: 900 }}>{it.item_name}</div>
@@ -417,10 +424,12 @@ export default function BorrowRequests({ onInventoryChanged }) {
                     style={{
                       width: "100%",
                       borderRadius: 8,
-                      border: "1px solid #dadce0",
+                      border: `1px solid ${theme.border}`,
                       padding: 10,
                       resize: "vertical",
                       fontFamily: "inherit",
+						background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+						color: theme.text,
                     }}
                   />
                 </div>

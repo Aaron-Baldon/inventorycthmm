@@ -8,10 +8,13 @@ import FAQManager from "../components/admin/FAQManager"
 import { getItems } from "../helper/api";
 import BorrowRequests from "../components/admin/BorrowRequests";
 import ProblemReports from "../components/admin/ProblemReports";
+import { useTheme } from "../context/ThemeContext";
 
 export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [page, setPage] = useState("dashboard");
+
+  const { theme, setThemeScope } = useTheme();
 
   const [items, setItems] = useState([]);
 
@@ -30,12 +33,16 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    setThemeScope("admin");
+  }, [setThemeScope]);
+
+  useEffect(() => {
     reloadItems();
   }, []);
 
   return (
-    <div style={{ height: "100vh", background: "white" }}>
-      <Header onMenuClick={() => setSidebarOpen(true)} />
+    <div style={{ minHeight: "100vh", background: theme.bg, color: theme.text }}>
+      <Header onMenuClick={() => setSidebarOpen(true)} showThemeToggle />
 
       <Sidebar
         open={sidebarOpen}

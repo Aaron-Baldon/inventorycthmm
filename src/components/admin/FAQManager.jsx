@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "../../context/ToastContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const FAQ_BASE = process.env.REACT_APP_CHATBOT_BASE_URL || "http://localhost:5001";
 const API = `${FAQ_BASE}/faqs`;
@@ -113,6 +114,8 @@ const buttonRow = {
 
 export default function FAQManager() {
 	const toast = useToast();
+	const { theme, themeName } = useTheme();
+	const isDark = themeName === "dark";
 
 	const [faqs, setFaqs] = useState([]);
 	const [question, setQuestion] = useState("");
@@ -216,7 +219,7 @@ export default function FAQManager() {
 
 	return (
 
-	<div>
+	<div style={{ color: theme.text }}>
 
 		{/* ADD BUTTON */}
 		<div style={{marginBottom:"15px"}}>
@@ -226,13 +229,14 @@ export default function FAQManager() {
 		</div>
 
 		{/* TABLE */}
-		<div style={{ width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+		<div style={{ width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch", background: theme.card, borderRadius: "12px" }}>
 			<table
 				style={{
 					width:"100%",
 					minWidth: "720px",
 					borderCollapse:"collapse",
-					background:"#fff"
+					background: theme.card,
+					color: theme.text,
 				}}
 			>
 
@@ -259,18 +263,20 @@ export default function FAQManager() {
 				faqs.map((faq,index)=>(
 
 				<tr key={index} style={{
-					background:index % 2 === 0 ? "#ffffff" : "#eef3fb"
+					background: index % 2 === 0
+						? (isDark ? "rgba(255,255,255,0.02)" : "#ffffff")
+						: (isDark ? "rgba(255,255,255,0.04)" : "#eef3fb")
 				}}>
 
-					<td style={{...td,textAlign:"left"}}>
+					<td style={{...td,textAlign:"left",background: "transparent", color: theme.text}}>
 						{faq.question}
 					</td>
 
-					<td style={{...td,textAlign:"left"}}>
+					<td style={{...td,textAlign:"left",background: "transparent", color: theme.text}}>
 						{faq.answer}
 					</td>
 
-					<td style={td}>
+					<td style={{...td, background: "transparent", color: theme.text}}>
 
 						<div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
 
