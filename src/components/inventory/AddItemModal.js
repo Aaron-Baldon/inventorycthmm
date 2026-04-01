@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./AddItemModal.css";
+import { useTheme } from "../../context/ThemeContext";
 
 const EMPTY_FORM = {
 	item_code: "",
@@ -10,6 +11,43 @@ const EMPTY_FORM = {
 
 export default function AddItemModal({ onSave, onClose, item }) {
 	const [form, setForm] = useState(EMPTY_FORM);
+	const { theme, themeName } = useTheme();
+	const isDark = themeName === "dark";
+
+	const ui = {
+		modal: {
+			background: theme.card,
+			color: theme.text,
+			border: `1px solid ${theme.border}`,
+		},
+		header: {
+			borderBottom: `1px solid ${theme.border}`,
+		},
+		title: {
+			color: theme.text,
+		},
+		closeBtn: {
+			color: theme.text,
+			opacity: 0.8,
+		},
+		footer: {
+			borderTop: `1px solid ${theme.border}`,
+		},
+		label: {
+			color: theme.text,
+			opacity: 0.8,
+		},
+		input: {
+			background: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+			color: theme.text,
+			border: `1px solid ${theme.border}`,
+		},
+		cancelBtn: {
+			background: isDark ? "rgba(255,255,255,0.06)" : "#f1f3f4",
+			color: theme.text,
+			border: `1px solid ${theme.border}`,
+		},
+	};
 
 	/* 🔹 LOAD DATA WHEN EDITING / RESET WHEN CREATING */
 	useEffect(() => {
@@ -43,21 +81,21 @@ export default function AddItemModal({ onSave, onClose, item }) {
 
 	return (
 		<div className="modal-backdrop">
-			<div className="modal">
-				<div className="modal-header">
-					<h3>{item ? "Update Inventory Item" : "Add Inventory Item"}</h3>
-					<button onClick={onClose}>✕</button>
+			<div className="modal" style={ui.modal}>
+				<div className="modal-header" style={ui.header}>
+					<h3 style={ui.title}>{item ? "Update Inventory Item" : "Add Inventory Item"}</h3>
+					<button onClick={onClose} style={ui.closeBtn}>✕</button>
 				</div>
 
 				<div className="modal-body">
-					<Input label="Item Code" name="item_code" value={form.item_code} onChange={handleChange} />
-					<Input label="Item Name" name="item_name" value={form.item_name} onChange={handleChange} />
-					<Input label="Category" name="category" value={form.category} onChange={handleChange} />
-					<Input label="Quantity" type="number" name="quantity" value={form.quantity} onChange={handleChange} />
+					<Input ui={ui} label="Item Code" name="item_code" value={form.item_code} onChange={handleChange} />
+					<Input ui={ui} label="Item Name" name="item_name" value={form.item_name} onChange={handleChange} />
+					<Input ui={ui} label="Category" name="category" value={form.category} onChange={handleChange} />
+					<Input ui={ui} label="Quantity" type="number" name="quantity" value={form.quantity} onChange={handleChange} />
 				</div>
 
-				<div className="modal-footer">
-					<button className="btn cancel" onClick={onClose}>Cancel</button>
+				<div className="modal-footer" style={ui.footer}>
+					<button className="btn cancel" onClick={onClose} style={ui.cancelBtn}>Cancel</button>
 					<button className="btn save" onClick={handleSave}>Save</button>
 				</div>
 			</div>
@@ -65,15 +103,16 @@ export default function AddItemModal({ onSave, onClose, item }) {
 	);
 }
 
-function Input({ label, type = "text", name, value, onChange }) {
+function Input({ ui, label, type = "text", name, value, onChange }) {
 	return (
 		<div className="field">
-			<label>{label}</label>
+			<label style={ui?.label}>{label}</label>
 			<input
 				type={type}
 				name={name}
 				value={value}
 				onChange={onChange}
+				style={ui?.input}
 			/>
 		</div>
 	);
