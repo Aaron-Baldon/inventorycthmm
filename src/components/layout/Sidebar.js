@@ -29,9 +29,12 @@ export default function Sidebar({ open, onClose, onNavigate }) {
 					transition: "left 0.3s ease",
 					zIndex: 10,
 					padding: "20px",
+					paddingBottom: "40px",
 					boxSizing: "border-box",
 					display: "flex",
 					flexDirection: "column",
+					overflowY: "auto",
+					WebkitOverflowScrolling: "touch",
 				}}
 			>
 				<div
